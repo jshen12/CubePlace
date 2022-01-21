@@ -3,17 +3,17 @@
 #include <fstream>
 #include <glad.h>
 #include <GLFW/glfw3.h>
-#include "shader.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "shader.h"
+
 
 // normalized unique vertecies, z-coords are 0 so 2d
 static float vertices[] = {
-     // positions        // colors
-     0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f   // top left 
+     // positions        // colors          // texture coords
+     0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,   // top right
+     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,   // bottom left
+    -0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left 
 };
 // indicies for each triangle
 unsigned int indices[] = {  // note that we start from 0!
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
     // call callback func (framebuffer_size...) when window is resized
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, processInput);
-    
+
     
     Shader ourShader("shader_vertex.glsl", "shader_fragment.glsl");
 
@@ -86,25 +86,50 @@ int main(int argc, char** argv)
     
     // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // vertex attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // wireframe mode
-    float timeValue = glfwGetTime();
-    float greenValue = sin(timeValue) / 2.0f + 0.5f;
-    printf("%f\n", greenValue);
-    float offset = 0.7f;
-    ourShader.setFloat("offSet", offset);
+    
+    // generate texture
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    
+    // load texture
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        printf("Failed to load texture");
+    }
+    stbi_image_free(data);
+    
     // render loop
     while (!glfwWindowShouldClose(window))
     {
         // clear buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindTexture(GL_TEXTURE_2D, texture);
         // draw elements
-        
         ourShader.use();
         // render
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);

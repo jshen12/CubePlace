@@ -155,6 +155,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\VisualStudiodevlib\glad\src\glad.c" />
     <ClCompile Include="first_opengl.cpp" />
+    <ClCompile Include="stp_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h" />
@@ -163,6 +164,9 @@
   <ItemGroup>
     <None Include="shader_fragment.glsl" />
     <None Include="shader_vertex.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="container.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
