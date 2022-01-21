@@ -4,6 +4,8 @@
 #include <glad.h>
 #include <GLFW/glfw3.h>
 #include "shader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // normalized unique vertecies, z-coords are 0 so 2d
 static float vertices[] = {
