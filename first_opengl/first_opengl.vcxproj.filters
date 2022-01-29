@@ -48,5 +48,8 @@
     <Image Include="illuminati.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Minecraft-Stone-Block.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

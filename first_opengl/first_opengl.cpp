@@ -19,50 +19,61 @@ static float vertices[] = {
     -0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left 
 };
 */
-// vertices for a cube
-float vertices[] = {
+static float vertices[] = {
+    // bottom face
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
+    // top face
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
+    // left face
     -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
+    // right face
      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
+     // back face
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
+    // front face
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
+
+// indices (oriented counterclockwise facing towards)
+static unsigned int indices[] = {
+    // bottom
+    0, 1, 2,
+    2, 3, 0,
+    // top
+    4, 5, 6,
+    6, 7, 4,
+    // left
+    8, 9, 10,
+    10, 11, 8,
+    // right
+    12, 13, 14,
+    14, 15, 12,
+    // back
+    16, 17, 18,
+    18, 19, 16,
+    // front
+    20, 21, 22,
+    22, 23, 20
+};
+
 // translations for each cube
 glm::vec3 cubePositions[] = {
     glm::vec3(0.0f,  0.0f,  0.0f),
@@ -208,10 +219,12 @@ int main(int argc, char** argv)
     GLuint vertex_array, vertex_buffer, element_buffer;
     glGenVertexArrays(1, &vertex_array);
     glGenBuffers(1, &vertex_buffer);               // generate 1 buffer w/ id vertex_buffer
+    glGenBuffers(1, &element_buffer);
     glBindVertexArray(vertex_array);               // bind array first
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // write to buffer
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);    // for vertex array buffers
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     
     // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
     // position attribute
@@ -226,7 +239,7 @@ int main(int argc, char** argv)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // wireframe mode
     
     // generate textures
-    unsigned int texture1, texture2;
+    unsigned int texture1;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     
@@ -238,7 +251,8 @@ int main(int argc, char** argv)
     // load texture
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrChannels;
-    unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
+    unsigned char* data = stbi_load("Minecraft-Stone-Block.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
@@ -250,31 +264,11 @@ int main(int argc, char** argv)
         printf("Failed to load texture");
     }
     stbi_image_free(data);
-    
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    data = stbi_load("illuminati.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        printf("Failed to load texture");
-    }
-    stbi_image_free(data);
+  
 
     
     ourShader.use();
     ourShader.setInt("ourTexture1", 0);
-    ourShader.setInt("ourTexture2", 1);
     glEnable(GL_DEPTH_TEST);
 
     // set projection matrix
@@ -301,8 +295,7 @@ int main(int argc, char** argv)
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
+
 
         ourShader.use();
         
@@ -325,7 +318,8 @@ int main(int argc, char** argv)
             float angle = currTime * 50.0f;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             ourShader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);     // for vertex arrays
+            //glDrawArrays(GL_TRIANGLES, 0, 36);     // for vertex arrays
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
         
         // swap buffers and poll

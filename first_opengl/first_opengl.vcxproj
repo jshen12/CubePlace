@@ -168,6 +168,7 @@
   <ItemGroup>
     <Image Include="container.jpg" />
     <Image Include="illuminati.png" />
+    <Image Include="Minecraft-Stone-Block.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
