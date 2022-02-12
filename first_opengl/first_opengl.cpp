@@ -8,24 +8,25 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "stb_image.h"
 #include "shader.h"
+#include "cube.h"
 
 /*
 // normalized unique vertecies, z-coords are 0 so 2d
 static float vertices[] = {
      // positions        // colors          // texture coords
-     0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,   // top right
-     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left 
+     1.0f,  1.0f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,   // top right
+     1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,   // bottom right
+    -1.0f, -1.0f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,   // bottom left
+    -1.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left 
 };
 */
 static float vertices[] = {
-    // bottom face
+    // front face
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    // top face
+    // back face
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
@@ -40,71 +41,74 @@ static float vertices[] = {
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     // back face
+     // bottom face
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    // front face
+    // top face
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+
 };
+
 
 // indices (oriented counterclockwise facing towards)
 static unsigned int indices[] = {
-    // bottom
     0, 1, 2,
     2, 3, 0,
-    // top
+
     4, 5, 6,
     6, 7, 4,
-    // left
+
     8, 9, 10,
     10, 11, 8,
-    // right
+
     12, 13, 14,
     14, 15, 12,
-    // back
+
     16, 17, 18,
     18, 19, 16,
-    // front
+
     20, 21, 22,
-    22, 23, 20
+    22, 23, 20,
 };
+
+
 
 // translations for each cube
-glm::vec3 cubePositions[] = {
-    glm::vec3(0.0f,  0.0f,  0.0f),
-    glm::vec3(2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3(1.3f, -2.0f, -2.5f),
-    glm::vec3(1.5f,  2.0f, -2.5f),
-    glm::vec3(1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-};
 
-const unsigned int SCREEN_WIDTH = 800;
-const unsigned int SCREEN_HEIGHT = 600;
+
+const int xChunk = 16;
+const int yChunk = 50;
+const int zChunk = 16; 
+
+const int NUM_CUBES = xChunk*yChunk*zChunk;
+glm::vec3 cubePositions[NUM_CUBES];
+
+const unsigned int SCREEN_WIDTH = 1600;
+const unsigned int SCREEN_HEIGHT = 900;
 const float FOV = 60.0f;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraPos = glm::vec3(8.0f, 2.0f, 8.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-bool currKeysDown[257];
+bool currKeysDown[349];
 
 bool firstMouse = true;
 float lastX = SCREEN_WIDTH / 2;
 float lastY = SCREEN_HEIGHT / 2;
 float yaw = -90.0f;
 float pitch = 0.0f;
+
+
+
+bool wireframeOn = false;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -116,7 +120,19 @@ void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, 
 {
     if (key < 0)
         return;
-    if (action == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+    else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+        if (!wireframeOn) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // wireframe mode
+            wireframeOn = true;
+        }
+        else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            wireframeOn = false;
+        }
+    }
+    else if (action == GLFW_PRESS)
         currKeysDown[key] = true;
     else if (action == GLFW_RELEASE)
         currKeysDown[key] = false;
@@ -126,18 +142,24 @@ void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, 
 
 void processKeyboardInput(GLFWwindow* window)
 {
-    if (currKeysDown[GLFW_KEY_ESCAPE])
-        glfwSetWindowShouldClose(window, true);
 
     const float cameraSpeed = 2.5f * deltaTime;
-    if (currKeysDown[GLFW_KEY_W])
-        cameraPos += cameraSpeed * cameraFront;
-    if (currKeysDown[GLFW_KEY_S])
-        cameraPos -= cameraSpeed * cameraFront;
+    if (currKeysDown[GLFW_KEY_W]) {
+        glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
+        cameraPos += glm::normalize(newCam) * cameraSpeed;
+    }
+    if (currKeysDown[GLFW_KEY_S]) {
+        glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
+        cameraPos -= glm::normalize(newCam) * cameraSpeed;
+    }
     if (currKeysDown[GLFW_KEY_A])
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (currKeysDown[GLFW_KEY_D])
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (currKeysDown[GLFW_KEY_SPACE])
+        cameraPos += glm::vec3(0, 1, 0) * cameraSpeed;
+    if (currKeysDown[GLFW_KEY_LEFT_SHIFT])
+        cameraPos-= glm::vec3(0, 1, 0) * cameraSpeed;
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -174,8 +196,71 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     cameraFront = glm::normalize(direction);
 }
 
+void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer, 
+    static float *vert, static unsigned int *ind, 
+    int vert_size, int ind_size, int count)
+{
+
+    glBindVertexArray(vertex_array);               // bind array first
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
+    glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STATIC_DRAW);  // write to buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STATIC_DRAW);
+    // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glBindVertexArray(0);
+}
+
+void setUpTexture(GLuint texture, const char* path)
+{
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load texture
+    stbi_set_flip_vertically_on_load(true);
+    int width, height, nrChannels;
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        printf("Failed to load texture");
+    }
+    stbi_image_free(data);
+}
+
+
 int main(int argc, char** argv)
 {
+
+    for (int x = 0; x < xChunk; x++) {
+        for (int y = 0; y < yChunk; y++) {
+            for (int z = 0; z < zChunk; z++) {
+                cubePositions[(x*yChunk*zChunk) + (y*yChunk) + z] = glm::vec3(float(x), float(-y), float(z));
+            }
+        }
+    }
+
+    for (int i = 0; i < 348; i++) {
+        currKeysDown[i] = false;
+    }
 
     // instantiante glfw
     if (!glfwInit()) {
@@ -220,53 +305,15 @@ int main(int argc, char** argv)
     glGenVertexArrays(1, &vertex_array);
     glGenBuffers(1, &vertex_buffer);               // generate 1 buffer w/ id vertex_buffer
     glGenBuffers(1, &element_buffer);
-    glBindVertexArray(vertex_array);               // bind array first
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // write to buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    //setUpBufferData(vertex_array, vertex_buffer, element_buffer);
     
-    // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // vertex attribute
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
-    //glEnableVertexAttribArray(1);
-    // texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // wireframe mode
     
     // generate textures
     unsigned int texture1;
     glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    setUpTexture(texture1, "Minecraft-Stone-Block.jpg");
     
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    
-    // load texture
-    stbi_set_flip_vertically_on_load(true);
-    int width, height, nrChannels;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
-    unsigned char* data = stbi_load("Minecraft-Stone-Block.jpg", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        printf("Failed to load texture");
-    }
-    stbi_image_free(data);
   
-
-    
     ourShader.use();
     ourShader.setInt("ourTexture1", 0);
     glEnable(GL_DEPTH_TEST);
@@ -281,10 +328,9 @@ int main(int argc, char** argv)
     while (!glfwWindowShouldClose(window))
     {
         // calculate timedelta
-        float currentFrame = glfwGetTime();
+        double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
         // input
         processKeyboardInput(window);
 
@@ -296,7 +342,6 @@ int main(int argc, char** argv)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
 
-
         ourShader.use();
         
         // draw elements
@@ -306,20 +351,19 @@ int main(int argc, char** argv)
         // (position, target (pos), up vector
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);    
         ourShader.setMat4("view", view);
-        
-
+        printf("x: %f y: %f z: %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
         // render
-        
-        for (unsigned int i = 0; i < 10; i++)
+        glBindVertexArray(vertex_array);  // do this before drawing different elements
+        for (unsigned int i = 0; i < NUM_CUBES; i++)
         {
+            Cube c = Cube(1, 1, 1, 1);
             glm::mat4 model = glm::mat4(1.0f);  // model matrix (position all model vert) 
             model = glm::translate(model, cubePositions[i]);
-            float currTime = glfwGetTime();
-            float angle = currTime * 50.0f;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             ourShader.setMat4("model", model);
-            //glDrawArrays(GL_TRIANGLES, 0, 36);     // for vertex arrays
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            //setUpBufferData(vertex_array, vertex_buffer, element_buffer);
+            
+            
+            drawBufferData(vertex_array, vertex_buffer, element_buffer, vertices, indices, sizeof(vertices), sizeof(indices), 36);
         }
         
         // swap buffers and poll

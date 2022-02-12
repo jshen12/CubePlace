@@ -154,10 +154,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\VisualStudiodevlib\glad\src\glad.c" />
+    <ClCompile Include="cube.cpp" />
     <ClCompile Include="first_opengl.cpp" />
     <ClCompile Include="stp_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cube.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
