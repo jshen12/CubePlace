@@ -9,6 +9,7 @@
 #include "stb_image.h"
 #include "shader.h"
 #include "cube.h"
+#include "chunk.h"
 
 /*
 // normalized unique vertecies, z-coords are 0 so 2d
@@ -20,61 +21,7 @@ static float vertices[] = {
     -1.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left 
 };
 */
-static float vertices[] = {
-    // front face
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    // back face
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    // left face
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    // right face
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     // bottom face
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    // top face
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 
-};
-
-
-// indices (oriented counterclockwise facing towards)
-static unsigned int indices[] = {
-    0, 1, 2,
-    2, 3, 0,
-
-    4, 5, 6,
-    6, 7, 4,
-
-    8, 9, 10,
-    10, 11, 8,
-
-    12, 13, 14,
-    14, 15, 12,
-
-    16, 17, 18,
-    18, 19, 16,
-
-    20, 21, 22,
-    22, 23, 20,
-};
 
 
 
@@ -87,6 +34,8 @@ const int zChunk = 16;
 
 const int NUM_CUBES = xChunk*yChunk*zChunk;
 glm::vec3 cubePositions[NUM_CUBES];
+
+const float speed = 5.0f;
 
 const unsigned int SCREEN_WIDTH = 1600;
 const unsigned int SCREEN_HEIGHT = 900;
@@ -143,7 +92,7 @@ void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, 
 void processKeyboardInput(GLFWwindow* window)
 {
 
-    const float cameraSpeed = 2.5f * deltaTime;
+    float cameraSpeed = speed * deltaTime;
     if (currKeysDown[GLFW_KEY_W]) {
         glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
         cameraPos += glm::normalize(newCam) * cameraSpeed;
@@ -200,7 +149,6 @@ void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint element_bu
     static float *vert, static unsigned int *ind, 
     int vert_size, int ind_size, int count)
 {
-
     glBindVertexArray(vertex_array);               // bind array first
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
     glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STATIC_DRAW);  // write to buffer
@@ -250,13 +198,6 @@ void setUpTexture(GLuint texture, const char* path)
 int main(int argc, char** argv)
 {
 
-    for (int x = 0; x < xChunk; x++) {
-        for (int y = 0; y < yChunk; y++) {
-            for (int z = 0; z < zChunk; z++) {
-                cubePositions[(x*yChunk*zChunk) + (y*yChunk) + z] = glm::vec3(float(x), float(-y), float(z));
-            }
-        }
-    }
 
     for (int i = 0; i < 348; i++) {
         currKeysDown[i] = false;
@@ -324,6 +265,9 @@ int main(int argc, char** argv)
     ourShader.setMat4("projection", projection);
 
     
+    double prevTime = glfwGetTime();
+    int nbFrames = 0;
+
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -331,6 +275,16 @@ int main(int argc, char** argv)
         double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        nbFrames++;
+
+        // calculate FPS
+        if ((currentFrame - prevTime) >= 1.0)
+        {
+            float del = currentFrame - prevTime;
+            printf("%f ms/frame FPS: %f\n", (del * 1000.0) / double(nbFrames), double(nbFrames) / (del));
+            nbFrames = 0;
+            prevTime = currentFrame;
+        }
         // input
         processKeyboardInput(window);
 
@@ -343,7 +297,7 @@ int main(int argc, char** argv)
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         ourShader.use();
-        
+        //printf("x: %f y: %f z: %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
         // draw elements
         // transformations
         glm::mat4 view = glm::mat4(1.0f);   // view matrix (position camera i.e. shift objects)
@@ -351,20 +305,36 @@ int main(int argc, char** argv)
         // (position, target (pos), up vector
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);    
         ourShader.setMat4("view", view);
-        printf("x: %f y: %f z: %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
-        for (unsigned int i = 0; i < NUM_CUBES; i++)
-        {
-            Cube c = Cube(1, 1, 1, 1);
-            glm::mat4 model = glm::mat4(1.0f);  // model matrix (position all model vert) 
-            model = glm::translate(model, cubePositions[i]);
-            ourShader.setMat4("model", model);
-            //setUpBufferData(vertex_array, vertex_buffer, element_buffer);
-            
-            
-            drawBufferData(vertex_array, vertex_buffer, element_buffer, vertices, indices, sizeof(vertices), sizeof(indices), 36);
+
+        Chunk *ch = new Chunk(0, 0);
+        for (int x = ch->startX; x < xChunk + ch->startX; x++) {
+            for (int y = 0; y < yChunk; y++) {
+                for (int z = ch->startZ; z < zChunk + ch->startZ; z++) {
+                    glm::mat4 model = glm::mat4(1.0f);
+                    glm::vec3 cubePos = glm::vec3(float(x), float(-y), float(z));
+                    
+                    model = glm::translate(model, cubePos);
+                    ourShader.setMat4("model", model);
+
+                    bool rendered[6];
+                    ch->getCubeFaces(x, y, z, rendered);
+                    int facesCount = 0;
+                    for (int i = 0; i < 6; i++)
+                        facesCount += rendered[i];
+                    
+                    float buffer[6 * 20];
+                    unsigned int indices[6 * 6];
+                    
+                    getBufferArray(buffer, indices, rendered);                    
+                    drawBufferData(vertex_array, vertex_buffer, element_buffer, buffer, indices, 
+                        sizeof(float) * facesCount * 20, sizeof(unsigned int) * facesCount * 6, facesCount * 6);
+
+                }
+            }
         }
+        
         
         // swap buffers and poll
         glfwSwapBuffers(window);
