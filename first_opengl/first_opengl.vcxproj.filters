@@ -54,13 +54,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="container.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="illuminati.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Minecraft-Stone-Block.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\grass-block-side-16x16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="pixel-1x1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="minecraft-textureatlas-16x16.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

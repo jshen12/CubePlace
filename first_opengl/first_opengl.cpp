@@ -32,6 +32,8 @@ const int xChunk = 16;
 const int yChunk = 50;
 const int zChunk = 16; 
 
+const int BLOCK_RESOLUTION = 16;
+
 const int NUM_CUBES = xChunk*yChunk*zChunk;
 glm::vec3 cubePositions[NUM_CUBES];
 
@@ -125,7 +127,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    const float sensitivity = 0.1f;
+    const float sensitivity = 0.05f;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
@@ -167,31 +169,35 @@ void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint element_bu
     glBindVertexArray(0);
 }
 
-void setUpTexture(GLuint texture, const char* path)
+unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrChannels)
+{
+    
+    // load texture
+    stbi_set_flip_vertically_on_load(true);
+    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    if (!data)
+        printf("Failed to load texture");
+    return data;
+}
+
+void bindTexture(GLuint texture, unsigned char* data, int width, int height)
 {
     glBindTexture(GL_TEXTURE_2D, texture);
-
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load texture
-    stbi_set_flip_vertically_on_load(true);
-    int width, height, nrChannels;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
-    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        printf("Failed to load texture");
-    }
-    stbi_image_free(data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void extractTextureAtlas(unsigned char* input, unsigned char* output, int row_idx, int col_idx)
+{
+
 }
 
 
@@ -252,8 +258,33 @@ int main(int argc, char** argv)
     // generate textures
     unsigned int texture1;
     glGenTextures(1, &texture1);
-    setUpTexture(texture1, "Minecraft-Stone-Block.jpg");
+    int width, height, nrChannels;
+    //unsigned char* data = setUpTexture("pixel-1x1.png", width, height, nrChannels);
+
+    unsigned char* data = setUpTexture("minecraft-textureatlas-16x16.png", width, height, nrChannels);
     
+    unsigned char* block_texture;
+    block_texture = new unsigned char[BLOCK_RESOLUTION * BLOCK_RESOLUTION * nrChannels] ;
+
+    int startCol = BLOCK_RESOLUTION * nrChannels * 2;
+    int startRow = BLOCK_RESOLUTION * nrChannels * 2;
+    int counter = 0;
+    printf("%d %d %d\n", width, height, nrChannels);
+    // row section
+    for (int y = startRow; y < startRow + BLOCK_RESOLUTION; y++) {
+        // column section
+        for (int x = startCol; x < startCol + BLOCK_RESOLUTION; x++) {
+            for (int c = 0; c < nrChannels; c++) {
+                block_texture[counter] = data[y * width * nrChannels + x * nrChannels + c];
+                counter++;
+            }
+        }
+    }
+    
+    
+    bindTexture(texture1, block_texture, width=BLOCK_RESOLUTION, height=BLOCK_RESOLUTION);
+    //bindTexture(texture1, data, width = width, height = height);
+    delete[]block_texture;
   
     ourShader.use();
     ourShader.setInt("ourTexture1", 0);
@@ -269,6 +300,7 @@ int main(int argc, char** argv)
     int nbFrames = 0;
 
     // render loop
+    
     while (!glfwWindowShouldClose(window))
     {
         // calculate timedelta
@@ -308,7 +340,7 @@ int main(int argc, char** argv)
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
 
-        Chunk *ch = new Chunk(0, 0);
+        Chunk* ch = new Chunk(0, 0);
         for (int x = ch->startX; x < xChunk + ch->startX; x++) {
             for (int y = 0; y < yChunk; y++) {
                 for (int z = ch->startZ; z < zChunk + ch->startZ; z++) {
@@ -340,7 +372,7 @@ int main(int argc, char** argv)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
+    
     glfwTerminate();
 
     

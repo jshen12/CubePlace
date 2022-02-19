@@ -170,9 +170,10 @@
     <None Include="shader_vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="container.jpg" />
-    <Image Include="illuminati.png" />
     <Image Include="Minecraft-Stone-Block.jpg" />
+    <Image Include="minecraft-textureatlas-16x16.png" />
+    <Image Include="pixel-1x1.png" />
+    <Image Include="textures\grass-block-side-16x16.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
