@@ -34,6 +34,7 @@ const int zChunk = 16;
 
 const int BLOCK_RESOLUTION = 16;
 
+
 const int NUM_CUBES = xChunk*yChunk*zChunk;
 glm::vec3 cubePositions[NUM_CUBES];
 
@@ -181,24 +182,21 @@ unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrCh
     return data;
 }
 
-void bindTexture(GLuint texture, unsigned char* data, int width, int height)
+void loadTexture(GLuint texture, unsigned char* data, int width, int height)
 {
     glBindTexture(GL_TEXTURE_2D, texture);
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-}
-
-void extractTextureAtlas(unsigned char* input, unsigned char* output, int row_idx, int col_idx)
-{
+    glGenerateMipmap(GL_TEXTURE_2D);  
 
 }
+
 
 
 int main(int argc, char** argv)
@@ -214,7 +212,7 @@ int main(int argc, char** argv)
         printf("Error when instantiating glfw");
         return -1;
     }
-    
+
     // set opengl version to 3 w/ core profile
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -235,7 +233,7 @@ int main(int argc, char** argv)
         printf("Failed to initialize GLAD");
         return -1;
     }
-    
+
     // specify dimentions (bottom left x, y, width, height)
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     // call callback func (framebuffer_size...) when window is resized
@@ -243,52 +241,32 @@ int main(int argc, char** argv)
     glfwSetKeyCallback(window, updateKeyboardInput);
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    
+
     Shader ourShader("shader_vertex.glsl", "shader_fragment.glsl");
 
     // create bindable vertex array and buffers
-    
+
     GLuint vertex_array, vertex_buffer, element_buffer;
     glGenVertexArrays(1, &vertex_array);
     glGenBuffers(1, &vertex_buffer);               // generate 1 buffer w/ id vertex_buffer
     glGenBuffers(1, &element_buffer);
     //setUpBufferData(vertex_array, vertex_buffer, element_buffer);
-    
-    
+
+
     // generate textures
-    unsigned int texture1;
-    glGenTextures(1, &texture1);
+    GLuint textures;
+    glGenTextures(1, &textures);
     int width, height, nrChannels;
-    //unsigned char* data = setUpTexture("pixel-1x1.png", width, height, nrChannels);
 
     unsigned char* data = setUpTexture("minecraft-textureatlas-16x16.png", width, height, nrChannels);
-    
-    unsigned char* block_texture;
-    block_texture = new unsigned char[BLOCK_RESOLUTION * BLOCK_RESOLUTION * nrChannels] ;
+    loadTexture(textures, data, width = width, height = height);
 
-    int startCol = BLOCK_RESOLUTION * nrChannels * 2;
-    int startRow = BLOCK_RESOLUTION * nrChannels * 2;
-    int counter = 0;
-    printf("%d %d %d\n", width, height, nrChannels);
-    // row section
-    for (int y = startRow; y < startRow + BLOCK_RESOLUTION; y++) {
-        // column section
-        for (int x = startCol; x < startCol + BLOCK_RESOLUTION; x++) {
-            for (int c = 0; c < nrChannels; c++) {
-                block_texture[counter] = data[y * width * nrChannels + x * nrChannels + c];
-                counter++;
-            }
-        }
-    }
-    
-    
-    bindTexture(texture1, block_texture, width=BLOCK_RESOLUTION, height=BLOCK_RESOLUTION);
-    //bindTexture(texture1, data, width = width, height = height);
-    delete[]block_texture;
-  
     ourShader.use();
     ourShader.setInt("ourTexture1", 0);
+    ourShader.setInt("TexSize", BLOCK_RESOLUTION);
     glEnable(GL_DEPTH_TEST);
+
+    stbi_image_free(data);
 
     // set projection matrix
     glm::mat4 projection = glm::mat4(1.0f);
@@ -300,7 +278,6 @@ int main(int argc, char** argv)
     int nbFrames = 0;
 
     // render loop
-    
     while (!glfwWindowShouldClose(window))
     {
         // calculate timedelta
@@ -324,10 +301,8 @@ int main(int argc, char** argv)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-
+        glBindTexture(GL_TEXTURE_2D, textures);
         ourShader.use();
         //printf("x: %f y: %f z: %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
         // draw elements
@@ -349,7 +324,23 @@ int main(int argc, char** argv)
                     
                     model = glm::translate(model, cubePos);
                     ourShader.setMat4("model", model);
+                    
+                    glm::vec2 offset;
+                    if (y == 0) {
+                        offset = glm::vec2(3.0f/(width/BLOCK_RESOLUTION), 15.0f/(height/BLOCK_RESOLUTION));
+                        ourShader.setVec2("offset", offset);
+                    }
+                    else if (y < 3){
+                        offset = glm::vec2(2.0f / (width / BLOCK_RESOLUTION), 15.0f / (height / BLOCK_RESOLUTION));
+                        ourShader.setVec2("offset", offset);
+                    }
+                    else {
+                        offset = glm::vec2(1.0f / (width / BLOCK_RESOLUTION), 15.0f / (height / BLOCK_RESOLUTION));
+                        ourShader.setVec2("offset", offset);
+                    }
 
+
+                    // TODO: only run this when needed (i.e. player breaks block)
                     bool rendered[6];
                     ch->getCubeFaces(x, y, z, rendered);
                     int facesCount = 0;
