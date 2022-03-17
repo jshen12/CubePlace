@@ -1,7 +1,17 @@
 #ifndef CHUNK_H_
 #define CHUNK_H_
 
+#include "renderer.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <fstream>
+#include "config.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "cube.h"
+#include "shader.h"
+
 class Chunk
 {
 public:
@@ -10,14 +20,17 @@ public:
 	int startX;
 	int startZ;	
 	unsigned int numCubes;
-	Chunk(int xpos, int zpos);
+	Chunk(int xpos, int zpos, Shader &shader);
 	~Chunk();
 	void getCubeFaces(int x, int y, int z, bool(&render)[6]);
+	void renderChunk(int height, int width, GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer);
+	void buildTerrain();
 private:
 	// "3-d" array of cubes
-	int * cubes;  // 1 if present, 0 if not
+	Cube * cubes;  
+	Shader * m_shader;
 
 };
 
 
-#endif CHUNK_H_
+#endif 

@@ -2,6 +2,7 @@
 #define SHADER_H_
 
 #include <glad.h>
+#include <GLFW/glfw3.h>
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -39,7 +40,7 @@ public:
 			vertexCode = vShaderStream.str();
 			fragmentCode = fShaderStream.str();
 		}
-		catch(std::ifstream::failure e)
+		catch (std::ifstream::failure e)
 		{
 			printf("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
 		}

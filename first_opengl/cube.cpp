@@ -40,45 +40,32 @@ static float vertices[] = {
 };
 
 
-Cube::Cube(int x, int y, int z, int t)
-    :xpos(0), ypos(0), zpos(0), type(0)
+Cube::Cube()
 {
-	xpos = x;
-	ypos = y;
-	zpos = z;
-	type = t;
-
+    isActive = false;
+    type = Cube::BlockType_Default;
 }
 
-/*
+Cube::Cube(BlockType t, bool active)
+{
+    isActive = active;
+    type = t;
+}
+
+
 Cube::~Cube()
 {
-    delete xpos;
-    delete ypos;
-    delete zpos;
-    delete type;
-    delete[] renderedFaces;
+
 }
 
-Cube::Cube(const Cube& c)
+bool Cube::IsActive()
 {
-    xpos = c.xpos;
-    ypos = c.ypos;
-    zpos = c.zpos;
-    type = c.type;
-    for (int i = 0; i < 6; i++)
-        renderedFaces[i] = c.renderedFaces[i];
+    return isActive;
 }
-*/
 
-int Cube::numRenderedFaces()
+void Cube::setActive(bool active)
 {
-    int numFaces = 0;
-    for (int i = 0; i < 6; i++) {
-        if (renderedFaces[i])
-            numFaces++;
-    }
-    return numFaces;
+    isActive = active;
 }
 
 void getBufferArray(float* buff, unsigned int* indices, bool render[6])

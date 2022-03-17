@@ -7,9 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "stb_image.h"
-#include "shader.h"
-#include "cube.h"
 #include "chunk.h"
+#include "config.h"
+#include "renderer.h"
+#include "shader.h"
 
 /*
 // normalized unique vertecies, z-coords are 0 so 2d
@@ -23,26 +24,8 @@ static float vertices[] = {
 */
 
 
-
-
 // translations for each cube
-
-
-const int xChunk = 16;
-const int yChunk = 50;
-const int zChunk = 16; 
-
-const int BLOCK_RESOLUTION = 16;
-
-
-const int NUM_CUBES = xChunk*yChunk*zChunk;
 glm::vec3 cubePositions[NUM_CUBES];
-
-const float speed = 5.0f;
-
-const unsigned int SCREEN_WIDTH = 1600;
-const unsigned int SCREEN_HEIGHT = 900;
-const float FOV = 60.0f;
 
 glm::vec3 cameraPos = glm::vec3(8.0f, 2.0f, 8.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -148,28 +131,6 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     cameraFront = glm::normalize(direction);
 }
 
-void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer, 
-    static float *vert, static unsigned int *ind, 
-    int vert_size, int ind_size, int count)
-{
-    glBindVertexArray(vertex_array);               // bind array first
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
-    glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STATIC_DRAW);  // write to buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STATIC_DRAW);
-    // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glBindVertexArray(0);
-}
-
 unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrChannels)
 {
     
@@ -182,20 +143,6 @@ unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrCh
     return data;
 }
 
-void loadTexture(GLuint texture, unsigned char* data, int width, int height)
-{
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);  
-
-}
 
 
 
@@ -277,6 +224,8 @@ int main(int argc, char** argv)
     double prevTime = glfwGetTime();
     int nbFrames = 0;
 
+    Chunk* ch = new Chunk(0, 0, ourShader);
+    ch->buildTerrain();
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -315,49 +264,10 @@ int main(int argc, char** argv)
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
 
-        Chunk* ch = new Chunk(0, 0);
-        for (int x = ch->startX; x < xChunk + ch->startX; x++) {
-            for (int y = 0; y < yChunk; y++) {
-                for (int z = ch->startZ; z < zChunk + ch->startZ; z++) {
-                    glm::mat4 model = glm::mat4(1.0f);
-                    glm::vec3 cubePos = glm::vec3(float(x), float(-y), float(z));
-                    
-                    model = glm::translate(model, cubePos);
-                    ourShader.setMat4("model", model);
-                    
-                    glm::vec2 offset;
-                    if (y == 0) {
-                        offset = glm::vec2(3.0f/(width/BLOCK_RESOLUTION), 15.0f/(height/BLOCK_RESOLUTION));
-                        ourShader.setVec2("offset", offset);
-                    }
-                    else if (y < 3){
-                        offset = glm::vec2(2.0f / (width / BLOCK_RESOLUTION), 15.0f / (height / BLOCK_RESOLUTION));
-                        ourShader.setVec2("offset", offset);
-                    }
-                    else {
-                        offset = glm::vec2(1.0f / (width / BLOCK_RESOLUTION), 15.0f / (height / BLOCK_RESOLUTION));
-                        ourShader.setVec2("offset", offset);
-                    }
 
-
-                    // TODO: only run this when needed (i.e. player breaks block)
-                    bool rendered[6];
-                    ch->getCubeFaces(x, y, z, rendered);
-                    int facesCount = 0;
-                    for (int i = 0; i < 6; i++)
-                        facesCount += rendered[i];
-                    
-                    float buffer[6 * 20];
-                    unsigned int indices[6 * 6];
-                    
-                    getBufferArray(buffer, indices, rendered);                    
-                    drawBufferData(vertex_array, vertex_buffer, element_buffer, buffer, indices, 
-                        sizeof(float) * facesCount * 20, sizeof(unsigned int) * facesCount * 6, facesCount * 6);
-
-                }
-            }
-        }
         
+        ch->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
+
         
         // swap buffers and poll
         glfwSwapBuffers(window);

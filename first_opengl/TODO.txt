@@ -1,0 +1,28 @@
+TODO:
+
+- Improvements:
+	- Fix texture bleeding from texture atlas mipmaps http://gaarlicbread.com/post/gl_2d_array
+
+- Code structure:
+	- Find easy way to reference block indicies in atlas (enum?)
+ 
+- World generation:
+	- render multiple chunks
+	- cull cube faces between chunks
+	- interesting noise-based terrain generation (perlin noise?)
+	- skybox
+	- lighting (ambient occlusion)
+	- derender unseen chunks
+	- flowers
+	- transparent blocks (glass, water)
+
+
+- Optimizations:
+	- only calculate rendered faces when needed
+
+- Player:
+	- block breaking
+	- physics/gravity
+
+- Other:
+	- text rendering

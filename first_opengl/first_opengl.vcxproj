@@ -161,7 +161,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="cube.h" />
+    <ClInclude Include="noise.h" />
+    <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
@@ -174,6 +177,9 @@
     <Image Include="minecraft-textureatlas-16x16.png" />
     <Image Include="pixel-1x1.png" />
     <Image Include="textures\grass-block-side-16x16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

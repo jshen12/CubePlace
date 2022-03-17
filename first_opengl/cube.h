@@ -5,25 +5,29 @@
 class Cube 
 {
 public:
-	int xpos;
-	int ypos;
-	int zpos;
-	int type;
-	bool renderedFaces[];  // front back left right bottom top
+	enum BlockType {
+		BlockType_Default = 0,
+		BlockType_Grass,
+		BlockType_Dirt,
+		BlockType_Water,
+		BlockType_Stone,
+		BlockType_Wood,
+		BlockType_Sand,
+		BlockType_NumTypes,
+	};
+	
 
-	Cube(int xpos, int ypos, int zpos, int type);
-	/*
+	Cube();
+	Cube(BlockType type, bool active);
 	~Cube();
-	Cube(const Cube& c);
-	*/
-	// creates buffer array of vertecies and textures and indicies array
-	// render: array of bools indicating if the face is rendered
-	//void getBufferArray(float* buff, unsigned int* indices, bool render[6], int numFaces);
-	int numRenderedFaces();
+	bool IsActive();
+	void setActive(bool active);
 
-
+private:
+	BlockType type;
+	bool isActive;
 };
 
 void getBufferArray(float* buff, unsigned int* indices, bool render[6]);
 
-#endif CUBE_H_
+#endif 
