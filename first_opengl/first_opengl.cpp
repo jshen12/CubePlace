@@ -27,7 +27,7 @@ static float vertices[] = {
 // translations for each cube
 glm::vec3 cubePositions[NUM_CUBES];
 
-glm::vec3 cameraPos = glm::vec3(8.0f, 2.0f, 8.0f);
+glm::vec3 cameraPos = glm::vec3(8.0f, 25.0f, 8.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -224,8 +224,16 @@ int main(int argc, char** argv)
     double prevTime = glfwGetTime();
     int nbFrames = 0;
 
+    // face culling, only render front
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CCW);
+    
+
     Chunk* ch = new Chunk(0, 0, ourShader);
+    Chunk* ch2 = new Chunk(0, zChunk, ourShader);
     ch->buildTerrain();
+    ch2->buildTerrain();
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -267,7 +275,7 @@ int main(int argc, char** argv)
 
         
         ch->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
-
+        ch2->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
         
         // swap buffers and poll
         glfwSwapBuffers(window);

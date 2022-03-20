@@ -9,7 +9,7 @@ TODO:
 - World generation:
 	- render multiple chunks
 	- cull cube faces between chunks
-	- interesting noise-based terrain generation (perlin noise?)
+	- interesting terrain generation (perlin noise)   ____DONE____
 	- skybox
 	- lighting (ambient occlusion)
 	- derender unseen chunks
@@ -18,7 +18,9 @@ TODO:
 
 
 - Optimizations:
-	- only calculate rendered faces when needed
+	- only calculate rendered faces when needed     ____DONE____
+	- octrees ???
+	- greedy meshing ???
 
 - Player:
 	- block breaking

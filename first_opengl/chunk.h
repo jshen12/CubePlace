@@ -22,14 +22,17 @@ public:
 	unsigned int numCubes;
 	Chunk(int xpos, int zpos, Shader &shader);
 	~Chunk();
-	void getCubeFaces(int x, int y, int z, bool(&render)[6]);
+	bool doesNeedRebuild();
+	void setRebuildStatus(bool status);
+	void getCubeFaces(int x, int y, int z, bool render[]);
 	void renderChunk(int height, int width, GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer);
 	void buildTerrain();
+
 private:
 	// "3-d" array of cubes
 	Cube * cubes;  
 	Shader * m_shader;
-
+	bool needsRebuild;
 };
 
 

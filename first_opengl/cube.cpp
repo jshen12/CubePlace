@@ -6,16 +6,16 @@
 
 // start bottom left, counter-clockwise
 static float vertices[] = {
-    // back face
+    // back face 
     -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     // front face
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     // left face
     -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -27,10 +27,10 @@ static float vertices[] = {
      0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     // bottom face
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
     // top face
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -43,7 +43,7 @@ static float vertices[] = {
 Cube::Cube()
 {
     isActive = false;
-    type = Cube::BlockType_Default;
+    type = BlockType::BlockType_Default;
 }
 
 Cube::Cube(BlockType t, bool active)
@@ -68,7 +68,17 @@ void Cube::setActive(bool active)
     isActive = active;
 }
 
-void getBufferArray(float* buff, unsigned int* indices, bool render[6])
+BlockType Cube::getType()
+{
+    return type;
+}
+
+void Cube::setType(BlockType t)
+{
+    type = t;
+}
+
+void getBufferArray(float* buff, unsigned int* indices, bool render[])
 {
     int face_count = 0;
 	// for each face

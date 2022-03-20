@@ -3,7 +3,7 @@
 
 
 #define xChunk 16
-#define yChunk 50
+#define yChunk 35
 #define zChunk 16
 
 #define BLOCK_RESOLUTION 16
