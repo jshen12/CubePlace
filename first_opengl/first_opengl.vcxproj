@@ -158,6 +158,7 @@
     <ClCompile Include="cube.cpp" />
     <ClCompile Include="first_opengl.cpp" />
     <ClCompile Include="stp_image.cpp" />
+    <ClCompile Include="world.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.h" />
@@ -167,12 +168,14 @@
     <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="world.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader_fragment.glsl" />
     <None Include="shader_vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="font_atlas.png" />
     <Image Include="Minecraft-Stone-Block.jpg" />
     <Image Include="minecraft-textureatlas-16x16.png" />
     <Image Include="pixel-1x1.png" />

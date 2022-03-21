@@ -30,6 +30,9 @@
     <ClCompile Include="chunk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="world.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -53,6 +56,9 @@
     <ClInclude Include="noise.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="world.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader_fragment.glsl">
@@ -73,6 +79,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="minecraft-textureatlas-16x16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="font_atlas.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -11,6 +11,7 @@
 #include "config.h"
 #include "renderer.h"
 #include "shader.h"
+#include "world.h"
 
 /*
 // normalized unique vertecies, z-coords are 0 so 2d
@@ -229,11 +230,16 @@ int main(int argc, char** argv)
     glCullFace(GL_FRONT);
     glFrontFace(GL_CCW);
     
+    World* w = new World(ourShader, height, width, vertex_array, vertex_buffer, element_buffer);
+    w->initWorld();
+    w->buildWorld();
 
-    Chunk* ch = new Chunk(0, 0, ourShader);
-    Chunk* ch2 = new Chunk(0, zChunk, ourShader);
-    ch->buildTerrain();
-    ch2->buildTerrain();
+    //Chunk* ch = new Chunk(0, zChunk, ourShader);
+    //Chunk* ch2 = new Chunk(0, 0, ourShader);
+    //Chunk* ch3 = new Chunk(0, 1, ourShader);
+    //ch->buildTerrain();
+    //ch2->buildTerrain();
+    //ch3->buildTerrain();
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -253,7 +259,6 @@ int main(int argc, char** argv)
         }
         // input
         processKeyboardInput(window);
-
         // clear buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -271,19 +276,19 @@ int main(int argc, char** argv)
         ourShader.setMat4("view", view);
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
-
-
         
-        ch->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
-        ch2->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
+        w->renderChunks();
         
+        //ch->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
+        //ch2->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
+        //ch3->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
+
         // swap buffers and poll
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     
     glfwTerminate();
-
     
     return 0;
 
