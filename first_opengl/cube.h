@@ -1,7 +1,6 @@
 #ifndef CUBE_H_
 #define CUBE_H_
 
-
 enum class BlockType {
 	BlockType_Default = 0,
 	BlockType_Grass,
@@ -17,8 +16,6 @@ class Cube
 {
 public:
 	
-	
-
 	Cube();
 	Cube(BlockType type, bool active);
 	~Cube();
@@ -26,7 +23,6 @@ public:
 	void setActive(bool active);
 	BlockType getType();
 	void setType(BlockType t);
-
 private:
 	BlockType type;
 	bool isActive;

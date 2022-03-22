@@ -233,13 +233,6 @@ int main(int argc, char** argv)
     World* w = new World(ourShader, height, width, vertex_array, vertex_buffer, element_buffer);
     w->initWorld();
     w->buildWorld();
-
-    //Chunk* ch = new Chunk(0, zChunk, ourShader);
-    //Chunk* ch2 = new Chunk(0, 0, ourShader);
-    //Chunk* ch3 = new Chunk(0, 1, ourShader);
-    //ch->buildTerrain();
-    //ch2->buildTerrain();
-    //ch3->buildTerrain();
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -279,9 +272,6 @@ int main(int argc, char** argv)
         
         w->renderChunks();
         
-        //ch->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
-        //ch2->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
-        //ch3->renderChunk(height, width, vertex_array, vertex_buffer, element_buffer);
 
         // swap buffers and poll
         glfwSwapBuffers(window);

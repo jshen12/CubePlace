@@ -7,12 +7,12 @@ TODO:
 	- Find easy way to reference block indicies in atlas (enum?)
  
 - World generation:
-	- render multiple chunks
-	- cull cube faces between chunks
+	- render multiple chunks						  ____DONE____
+	- cull cube faces between chunks				  ____DONE____
 	- interesting terrain generation (perlin noise)   ____DONE____
 	- skybox
 	- lighting (ambient occlusion)
-	- derender unseen chunks
+	- derender unseen chunks/ load new chunks
 	- flowers
 	- transparent blocks (glass, water)
 

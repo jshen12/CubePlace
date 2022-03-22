@@ -3,47 +3,15 @@
 #include <stdio.h>
 #include <fstream>
 
-
 // start bottom left, counter-clockwise
-static float vertices[] = {
-    // back face 
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    // front face
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    // left face
-    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    // right face
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    // bottom face
-    -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-    // top face
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f
 
-};
 
 
 Cube::Cube()
 {
     isActive = false;
     type = BlockType::BlockType_Default;
+
 }
 
 Cube::Cube(BlockType t, bool active)
@@ -55,7 +23,7 @@ Cube::Cube(BlockType t, bool active)
 
 Cube::~Cube()
 {
-
+   
 }
 
 bool Cube::IsActive()
@@ -78,8 +46,42 @@ void Cube::setType(BlockType t)
     type = t;
 }
 
+
 void getBufferArray(float* buff, unsigned int* indices, bool render[])
 {
+    static const float vertices[] = {
+        // back face 
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        // front face
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        // left face
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        // right face
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         // bottom face
+         -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,
+          0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
+          0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         // top face
+         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+          0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+          0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f
+
+    };
     int face_count = 0;
 	// for each face
     for (int i = 0; i < 6; i++)

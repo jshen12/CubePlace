@@ -15,8 +15,8 @@
 class Chunk
 {
 public:
-	// startX,Z is smallest coordinate
-	// so chunk spans (startX -> startX + 16), etc
+	// startX,Z is smallest coordinate indicies
+	// so chunk spans (startX * 16 -> startX * 16 + 16), etc
 	int startX;
 	int startZ;	
 	unsigned int numCubes;
@@ -24,9 +24,10 @@ public:
 	~Chunk();
 	bool doesNeedRebuild();
 	void setRebuildStatus(bool status);
-	void getCubeFaces(int x, int y, int z, bool render[]);
-	void renderChunk(int height, int width, GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer);
+	void renderFaces(int height, int width, GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer, bool rendered[6], 
+		int facesCount, int x, int y, int z);
 	void buildTerrain();
+	Cube cubeAt(int x, int y, int z);
 
 private:
 	// "3-d" array of cubes
