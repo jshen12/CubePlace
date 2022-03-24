@@ -7,15 +7,13 @@ out vec3 ourColor;                    // specify color output to fragment shader
 out vec2 TexCoord;
 
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 matrix;
 
 uniform vec2 offset;
-uniform int TexSize;
 
 void main()
 {
-   gl_Position = projection * view * model * vec4(aPos, 1.0);  // order is important !!!! (right to left)
+   gl_Position = matrix * model * vec4(aPos, 1.0);  // order is important !!!! (right to left)
    //ourColor = vec3(aColor);
-   TexCoord = vec2(aTexCoord.x/TexSize, aTexCoord.y/TexSize) + offset;
+   TexCoord = aTexCoord + offset;
 }

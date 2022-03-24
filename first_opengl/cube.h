@@ -28,6 +28,8 @@ private:
 	bool isActive;
 };
 
-void getBufferArray(float* buff, unsigned int* indices, bool render[]);
+void getBufferArray(float* buff, unsigned int* indices, BlockType type, bool render[]);
+void getBufferArray_1face(float* buff, unsigned int* indices, BlockType type, int face, int height, int width);
+
 
 #endif 

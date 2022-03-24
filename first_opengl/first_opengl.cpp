@@ -209,9 +209,11 @@ int main(int argc, char** argv)
     unsigned char* data = setUpTexture("minecraft-textureatlas-16x16.png", width, height, nrChannels);
     loadTexture(textures, data, width = width, height = height);
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures);
     ourShader.use();
+
     ourShader.setInt("ourTexture1", 0);
-    ourShader.setInt("TexSize", BLOCK_RESOLUTION);
     glEnable(GL_DEPTH_TEST);
 
     stbi_image_free(data);
@@ -219,7 +221,6 @@ int main(int argc, char** argv)
     // set projection matrix
     glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::perspective(glm::radians(FOV), float(SCREEN_WIDTH)/float(SCREEN_HEIGHT), 0.1f, 100.0f); // projection matrix (fov, aspect ratio, near, far)
-    ourShader.setMat4("projection", projection);
 
     
     double prevTime = glfwGetTime();
@@ -229,7 +230,9 @@ int main(int argc, char** argv)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CCW);
-    
+
+    //glEnable(GL_RASTERIZER_DISCARD);
+
     World* w = new World(ourShader, height, width, vertex_array, vertex_buffer, element_buffer);
     w->initWorld();
     w->buildWorld();
@@ -253,12 +256,10 @@ int main(int argc, char** argv)
         // input
         processKeyboardInput(window);
         // clear buffer
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(120.0f / 256.0f, 167.0f / 256.0f, 255.0f / 256.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures);
-        ourShader.use();
+        
         //printf("x: %f y: %f z: %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
         // draw elements
         // transformations
@@ -266,7 +267,7 @@ int main(int argc, char** argv)
         // create view matrix for camera
         // (position, target (pos), up vector
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);    
-        ourShader.setMat4("view", view);
+        ourShader.setMat4("matrix", projection * view);
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
         

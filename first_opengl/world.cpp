@@ -23,8 +23,8 @@ World::~World()
 
 void World::initWorld()
 {
-	for (int x = -1; x < 2; x++) {
-		for (int z = -1; z < 2; z++) {
+	for (int x = -1; x < 3; x++) {
+		for (int z = -1; z < 3; z++) {
 			Chunk* ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
 			chunkMap [std::make_pair(x * xChunk, z * zChunk)] = ch;
 		}
@@ -107,19 +107,41 @@ void World::renderChunks()
                     if (currCube.IsActive()) {
 
                         // TODO: only run this when needed (i.e. player breaks block)
-						bool rendered[6] = { 0 };
-						calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
-                        int facesCount = 0;
-                        for (int i = 0; i < 6; i++)
-                            facesCount += rendered[i];
-                        if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-							ch.second->renderFaces(height, width, vertex_array, vertex_buffer, element_buffer, rendered, facesCount, x, y, z);
-                        }
+						
+						//unsigned char cubeRender = ch.second->getRendered(x - ch.second->startX, y, z - ch.second->startZ);
+						if (ch.second->doesNeedRebuild()) {
+							bool rendered[6] = {};
+							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
+							
+							ch.second->setRendered(x - ch.second->startX, y, z - ch.second->startZ, rendered);
+							
+							int facesCount = 0;
+							for (int i = 0; i < 6; i++)
+								facesCount += rendered[i];
+							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
+								ch.second->renderFaces(height, width, vertex_array, vertex_buffer, element_buffer, rendered, facesCount, x, y, z);
+							}
+						}
+						else {
+							bool* rendered;
+							rendered = ch.second->getRendered(x - ch.second->startX, y, z - ch.second->startZ);
+							int facesCount = 0;
+							for (int i = 0; i < 6; i++) 
+								facesCount += (rendered[i] == true);
+							
+							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
+								ch.second->renderFaces(height, width, vertex_array, vertex_buffer, element_buffer, rendered, facesCount, x, y, z);
+							}
+						}
+
+                        
                     }
 
                 }
             }
         }
+		
+		ch.second->setRebuildStatus(false);
 
 	}
 }

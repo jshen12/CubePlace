@@ -28,11 +28,13 @@ public:
 		int facesCount, int x, int y, int z);
 	void buildTerrain();
 	Cube cubeAt(int x, int y, int z);
-
+	bool* getRendered(int x, int y, int z);
+	void setRendered(int x, int y, int z, bool r[6]);
 private:
 	// "3-d" array of cubes
 	Cube * cubes;  
 	Shader * m_shader;
+	bool* rendered;
 	bool needsRebuild;
 };
 
