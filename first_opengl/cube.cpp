@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <fstream>
 #include "config.h"
+#include <vector>
 
 // start bottom left, counter-clockwise
 static const float vertices[] = {
@@ -115,51 +116,6 @@ void getBufferArray(float* buff, unsigned int* indices, BlockType type, bool ren
     }
 }
 
-void getBufferArray_1face(float* buff, unsigned int* indices, BlockType type, int face, int height, int width)
-// 0: back 1: front 2: left 3: right 4: bottom 5: top
-{
-
-    float offsetX;
-    float offsetY;
-    if (type == BlockType::BlockType_Dirt) {
-        offsetX = 2.0f / (width / BLOCK_RESOLUTION);
-        offsetY = 15.0f / (height / BLOCK_RESOLUTION);
-    }
-    else if (type == BlockType::BlockType_Grass) {
-        if (face == 5) {
-            offsetX = 13.0f / (width / BLOCK_RESOLUTION);
-            offsetY = 4.0f / (height / BLOCK_RESOLUTION);
-        }
-        else {
-            offsetX = 3.0f / (width / BLOCK_RESOLUTION);
-            offsetY = 15.0f / (height / BLOCK_RESOLUTION);
-        }
-    }
-    else {
-        offsetX = 1.0f / (width / BLOCK_RESOLUTION);
-        offsetY = 15.0f / (height / BLOCK_RESOLUTION);
-    }
-    // for each vertecies in a face
-    for (int v = 0; v < 4; v++)
-    {
-        // vertecies
-        *(buff++) = vertices[face * 20 + v * 5];
-        *(buff++) = vertices[face * 20 + v * 5 + 1];
-        *(buff++) = vertices[face * 20 + v * 5 + 2];
-        // uv tex coords
-        *(buff++) = vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX;
-        *(buff++) = vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY;
-
-    }
-
-    *(indices++) = 0;
-    *(indices++) = 1;
-    *(indices++) = 2;
-    *(indices++) = 2;
-    *(indices++) = 3;
-    *(indices++) = 0;
-    
-}
 
 
 

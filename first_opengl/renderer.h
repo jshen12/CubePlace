@@ -10,9 +10,9 @@ static void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint ele
 {
     glBindVertexArray(vertex_array);               // bind array first
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
-    glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STREAM_DRAW);  // write to buffer
+    glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STATIC_DRAW);  // write to buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STREAM_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STATIC_DRAW);
     // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);

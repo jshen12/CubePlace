@@ -1,6 +1,7 @@
 #ifndef CUBE_H_
 #define CUBE_H_
 
+
 enum class BlockType {
 	BlockType_Default = 0,
 	BlockType_Grass,
@@ -29,7 +30,6 @@ private:
 };
 
 void getBufferArray(float* buff, unsigned int* indices, BlockType type, bool render[]);
-void getBufferArray_1face(float* buff, unsigned int* indices, BlockType type, int face, int height, int width);
 
 
 #endif 

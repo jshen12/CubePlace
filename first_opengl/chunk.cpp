@@ -5,6 +5,41 @@
 #define coordToArray(x, y, z) (x * yChunk * zChunk + y * zChunk + z)
 #define coordToBool(x, y, z) (x * yChunk * zChunk * 6 + y * zChunk * 6 + z * 6)
 
+static const float reference_vertices[] = {
+    // back face 
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    // front face
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    // left face
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    // right face
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     // bottom face
+     -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     // top face
+     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f
+
+};
+
+
 Chunk::Chunk(int xpos, int zpos, Shader &a_shader)
 {
 	cubes = new Cube[xChunk * yChunk * zChunk];
@@ -19,8 +54,9 @@ Chunk::Chunk(int xpos, int zpos, Shader &a_shader)
 		}
 	}
     needsRebuild = true;
-	numCubes = 0;
     m_shader = &a_shader;
+    vertices = {};
+    indCount = 0;
 }
 
 Chunk::~Chunk()
@@ -40,6 +76,8 @@ void Chunk::setRebuildStatus(bool status)
     needsRebuild = status;
 }
 
+
+
 Cube Chunk::cubeAt(int x, int y, int z)
 {
     return cubes[coordToArray(x, y, z)];
@@ -58,32 +96,85 @@ void Chunk::setRendered(int x, int y, int z, bool r[6])
     }
 }
 
-void Chunk::renderFaces(int height, int width, GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer, bool rendered[6],
-    int facesCount, int x, int y, int z)
+
+void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z)
+// 0: back 1: front 2: left 3: right 4: bottom 5: top
+{
+
+    float offsetX;
+    float offsetY;
+    if (type == BlockType::BlockType_Dirt) {
+        offsetX = 2.0f / (width / BLOCK_RESOLUTION);
+        offsetY = 15.0f / (height / BLOCK_RESOLUTION);
+    }
+    else if (type == BlockType::BlockType_Grass) {
+        if (face == 5) {
+            offsetX = 13.0f / (width / BLOCK_RESOLUTION);
+            offsetY = 4.0f / (height / BLOCK_RESOLUTION);
+        }
+        else if (face == 4) {
+            offsetX = 2.0f / (width / BLOCK_RESOLUTION);
+            offsetY = 15.0f / (height / BLOCK_RESOLUTION);
+        }
+        else {
+            offsetX = 3.0f / (width / BLOCK_RESOLUTION);
+            offsetY = 15.0f / (height / BLOCK_RESOLUTION);
+        }
+    }
+    else {
+        offsetX = 1.0f / (width / BLOCK_RESOLUTION);
+        offsetY = 15.0f / (height / BLOCK_RESOLUTION);
+    }
+    // for each vertecies in a face
+    for (int v = 0; v < 4; v++)
+    {
+        // vertecies
+        vertices.push_back(reference_vertices[face * 20 + v * 5] + x);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 1] + y);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 2] + z);
+        // uv tex coords
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
+
+    }
+
+    indices.push_back(indCount);
+    indices.push_back(indCount + 1);
+    indices.push_back(indCount + 2);
+    indices.push_back(indCount + 2);
+    indices.push_back(indCount + 3);
+    indices.push_back(indCount);
+
+    indCount += 4;
+
+}
+
+void Chunk::renderFaces(int height, int width, bool rendered[6], int x, int y, int z)
 {
     glm::mat4 model;
     glm::vec3 cubePos;
     
     Cube currCube = cubeAt(x - startX, y, z - startZ);
-    float buffer[20] = { 0 };
-    unsigned int indices[6] = { 0 };
 
-    //getBufferArray(buffer, indices, currCube.getType(), rendered);
     model = glm::mat4(1.0f);
     cubePos = glm::vec3(float(x), float(y), float(z));
 
     model = glm::translate(model, cubePos);
     m_shader->setMat4("model", model);
     
-    for (int i = 0; i < 6; i++) {
+    
+    for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {
-            getBufferArray_1face(buffer, indices, currCube.getType(), i, height, width);
-            drawBufferData(vertex_array, vertex_buffer, element_buffer, buffer, indices,
-                sizeof(float) * 20, sizeof(unsigned int) * 6, 6);
+            getBufferArray_1face(currCube.getType(), i, height, width, float(x), float(y), float(z));            
         }
     }
-    
 
+}
+
+void Chunk::drawMesh(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer)
+{
+    drawBufferData(vertex_array, vertex_buffer, element_buffer, &vertices[0], &indices[0],
+        sizeof(float) * vertices.size(), sizeof(unsigned int) * indices.size(), indices.size());
 }
 
 

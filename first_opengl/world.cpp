@@ -23,8 +23,8 @@ World::~World()
 
 void World::initWorld()
 {
-	for (int x = -1; x < 3; x++) {
-		for (int z = -1; z < 3; z++) {
+	for (int x = -3; x < 4; x++) {
+		for (int z = -3; z < 4; z++) {
 			Chunk* ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
 			chunkMap [std::make_pair(x * xChunk, z * zChunk)] = ch;
 		}
@@ -105,11 +105,8 @@ void World::renderChunks()
 				
                     currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
                     if (currCube.IsActive()) {
-
-                        // TODO: only run this when needed (i.e. player breaks block)
 						
-						//unsigned char cubeRender = ch.second->getRendered(x - ch.second->startX, y, z - ch.second->startZ);
-						if (ch.second->doesNeedRebuild()) {
+						if (ch.second->doesNeedRebuild()) {   // only after chunk update
 							bool rendered[6] = {};
 							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
 							
@@ -119,20 +116,22 @@ void World::renderChunks()
 							for (int i = 0; i < 6; i++)
 								facesCount += rendered[i];
 							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-								ch.second->renderFaces(height, width, vertex_array, vertex_buffer, element_buffer, rendered, facesCount, x, y, z);
+								ch.second->renderFaces(height, width, rendered, x, y, z);
 							}
 						}
-						else {
+						/*
+						else {   // don't recalculate, just reference memory
 							bool* rendered;
 							rendered = ch.second->getRendered(x - ch.second->startX, y, z - ch.second->startZ);
 							int facesCount = 0;
 							for (int i = 0; i < 6; i++) 
-								facesCount += (rendered[i] == true);
+								facesCount += rendered[i];
 							
 							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-								ch.second->renderFaces(height, width, vertex_array, vertex_buffer, element_buffer, rendered, facesCount, x, y, z);
+								ch.second->renderFaces(height, width, rendered, x, y, z);
 							}
 						}
+						*/
 
                         
                     }
@@ -140,7 +139,7 @@ void World::renderChunks()
                 }
             }
         }
-		
+		ch.second->drawMesh(vertex_array, vertex_buffer, element_buffer);
 		ch.second->setRebuildStatus(false);
 
 	}

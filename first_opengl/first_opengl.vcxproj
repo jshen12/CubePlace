@@ -123,6 +123,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VisualStudiodevlib\glm-master;C:\VisualStudiodevlib\glm-master\glm;C:\VisualStudiodevlib\glad\include\KHR;C:\VisualStudiodevlib\glad\include\glad;C:\VisualStudiodevlib\glad\include;C:\VisualStudiodevlib\GLFW_64bit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Custom</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +142,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VisualStudiodevlib\glm-master;C:\VisualStudiodevlib\glm-master\glm;C:\VisualStudiodevlib\glad\include\KHR;C:\VisualStudiodevlib\glad\include\glad;C:\VisualStudiodevlib\glad\include;C:\VisualStudiodevlib\GLFW_64bit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Custom</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

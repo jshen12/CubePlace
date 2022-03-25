@@ -9,11 +9,9 @@ out vec2 TexCoord;
 uniform mat4 model;
 uniform mat4 matrix;
 
-uniform vec2 offset;
-
 void main()
 {
    gl_Position = matrix * model * vec4(aPos, 1.0);  // order is important !!!! (right to left)
    //ourColor = vec3(aColor);
-   TexCoord = aTexCoord + offset;
+   TexCoord = aTexCoord;
 }
