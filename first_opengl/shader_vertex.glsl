@@ -6,12 +6,11 @@ layout (location = 1) in vec2 aTexCoord;
 out vec3 ourColor;                    // specify color output to fragment shader
 out vec2 TexCoord;
 
-uniform mat4 model;
 uniform mat4 matrix;
 
 void main()
 {
-   gl_Position = matrix * model * vec4(aPos, 1.0);  // order is important !!!! (right to left)
+   gl_Position = matrix * vec4(aPos, 1.0);  // order is important !!!! (right to left)
    //ourColor = vec3(aColor);
    TexCoord = aTexCoord;
 }

@@ -13,19 +13,20 @@ World::World(Shader& shader, int h, int w, GLuint vert_arr, GLuint vert_buff, GL
 	vertex_buffer = vert_buff;
 	element_buffer = ele_buff;
 }
+
 World::~World()
 {
-	delete m_shader;
 	for (auto ch : chunkMap) {
 		delete ch.second;
+		chunkMap.erase(std::make_pair(ch.second->startX, ch.second->startZ));
 	}
 }
 
 void World::initWorld()
 {
-	for (int x = -3; x < 4; x++) {
-		for (int z = -3; z < 4; z++) {
-			Chunk* ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
+	for (int x = -10; x < 11; x++) {
+		for (int z = -10; z < 11; z++) {
+			Chunk *ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
 			chunkMap [std::make_pair(x * xChunk, z * zChunk)] = ch;
 		}
 	}
@@ -92,55 +93,69 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 		rendered[0] = !currChunk.cubeAt(x, y, z - 1).IsActive();
 }
 
-void World::renderChunks()
+void World::renderChunks(float currX, float currZ)
 {
-	// for every chunk
+	// delete far away chunks (and set rebuild status)
+	for (auto ch : chunkMap) {
+		if (abs(ch.second->startX - currX) > MAX_RENDER_DISTANCE * xChunk || abs(ch.second->startZ - currZ) > MAX_RENDER_DISTANCE * zChunk) {
+			delete ch.second;
+			chunkMap.erase(std::make_pair(ch.second->startX, ch.second->startZ));
+
+			// set rebuild status for adjecent chunks, if present
+			auto adjChunk = chunkMap.find(std::make_pair(ch.second->startX - xChunk, ch.second->startZ));   // south
+			if (adjChunk != chunkMap.end())
+				adjChunk->second->setRebuildStatus(true);
+			adjChunk = chunkMap.find(std::make_pair(ch.second->startX + xChunk, ch.second->startZ));   // north
+			if (adjChunk != chunkMap.end())
+				adjChunk->second->setRebuildStatus(true);
+			adjChunk = chunkMap.find(std::make_pair(ch.second->startX, ch.second->startZ - zChunk));   // east
+			if (adjChunk != chunkMap.end())
+				adjChunk->second->setRebuildStatus(true);
+			adjChunk = chunkMap.find(std::make_pair(ch.second->startX, ch.second->startZ + zChunk));   // west
+			if (adjChunk != chunkMap.end())
+				adjChunk->second->setRebuildStatus(true);
+
+		}
+	}
+
+	// add new chunks (and set rebuild status)
 	for (auto ch : chunkMap) {
 
-        Cube currCube;
+	}
+
+	// update chunks (if needed)
+	for (auto ch : chunkMap) {
+		
+		Cube currCube;
         // for every cube
-        for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
-			for (int y = 0; y < yChunk; y++) {
-				for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
-				
-                    currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
-                    if (currCube.IsActive()) {
-						
-						if (ch.second->doesNeedRebuild()) {   // only after chunk update
+		if (ch.second->doesNeedRebuild()) {   // only after chunk update
+			for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
+				for (int y = 0; y < yChunk; y++) {
+					for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
+
+						currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
+						if (currCube.IsActive()) {
+
 							bool rendered[6] = {};
 							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
-							
-							ch.second->setRendered(x - ch.second->startX, y, z - ch.second->startZ, rendered);
-							
+
 							int facesCount = 0;
 							for (int i = 0; i < 6; i++)
 								facesCount += rendered[i];
 							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
 								ch.second->renderFaces(height, width, rendered, x, y, z);
 							}
-						}
-						/*
-						else {   // don't recalculate, just reference memory
-							bool* rendered;
-							rendered = ch.second->getRendered(x - ch.second->startX, y, z - ch.second->startZ);
-							int facesCount = 0;
-							for (int i = 0; i < 6; i++) 
-								facesCount += rendered[i];
 							
-							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-								ch.second->renderFaces(height, width, rendered, x, y, z);
-							}
 						}
-						*/
 
-                        
-                    }
-
-                }
-            }
-        }
+					}
+				}
+			}
+			ch.second->setRebuildStatus(false);
+		}
 		ch.second->drawMesh(vertex_array, vertex_buffer, element_buffer);
-		ch.second->setRebuildStatus(false);
+		
+
 
 	}
 }

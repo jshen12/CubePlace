@@ -25,11 +25,8 @@ static float vertices[] = {
 */
 
 
-// translations for each cube
-glm::vec3 cubePositions[NUM_CUBES];
-
 glm::vec3 cameraPos = glm::vec3(8.0f, 25.0f, 8.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float deltaTime = 0.0f;
@@ -146,7 +143,6 @@ unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrCh
 
 
 
-
 int main(int argc, char** argv)
 {
 
@@ -220,7 +216,7 @@ int main(int argc, char** argv)
 
     // set projection matrix
     glm::mat4 projection = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(FOV), float(SCREEN_WIDTH)/float(SCREEN_HEIGHT), 0.1f, 100.0f); // projection matrix (fov, aspect ratio, near, far)
+    projection = glm::perspective(glm::radians(FOV), float(SCREEN_WIDTH)/float(SCREEN_HEIGHT), 0.1f, MAX_DRAW_DISTANCE); // projection matrix (fov, aspect ratio, near, far)
 
     
     double prevTime = glfwGetTime();
@@ -271,8 +267,7 @@ int main(int argc, char** argv)
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
         
-        w->renderChunks();
-        
+        w->renderChunks(cameraPos.x, cameraPos.z);
 
         // swap buffers and poll
         glfwSwapBuffers(window);

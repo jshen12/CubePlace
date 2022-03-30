@@ -18,8 +18,10 @@
 struct pair_hash {
 	//template <class T1, class T2>
 	std::size_t operator () (const std::pair<int, int>& p) const {
-		int h1 = p.first >= 0 ? 2 * p.first : (-2 * p.first) - 1;  // shift values to real number range
-		int h2 = p.second >= 0 ? 2 * p.second : (-2 * p.second) - 1;
+		int idx1 = p.first / xChunk;
+		int idx2 = p.second / zChunk;
+		int h1 = idx1 >= 0 ? 2 * idx1 : (-2 * idx1) - 1;  // shift values to real number range
+		int h2 = idx2 >= 0 ? 2 * idx2 : (-2 * idx2) - 1;
 		int szudzik = h1 >= h2 ? (h1 * h1) + h1 + h2 : (h2 * h2) + h1;
 		return szudzik;   // szudzik pairing function 
 	}
@@ -33,7 +35,7 @@ public:
 	~World();
 	void initWorld();
 	void buildWorld();
-	void renderChunks();
+	void renderChunks(float currX, float currZ);
 	void calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[]);
 
 private:

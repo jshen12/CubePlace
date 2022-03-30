@@ -29,7 +29,5 @@ private:
 	bool isActive;
 };
 
-void getBufferArray(float* buff, unsigned int* indices, BlockType type, bool render[]);
-
 
 #endif 

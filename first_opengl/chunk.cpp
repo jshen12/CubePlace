@@ -3,7 +3,6 @@
 #include "noise.h"
 
 #define coordToArray(x, y, z) (x * yChunk * zChunk + y * zChunk + z)
-#define coordToBool(x, y, z) (x * yChunk * zChunk * 6 + y * zChunk * 6 + z * 6)
 
 static const float reference_vertices[] = {
     // back face 
@@ -43,7 +42,7 @@ static const float reference_vertices[] = {
 Chunk::Chunk(int xpos, int zpos, Shader &a_shader)
 {
 	cubes = new Cube[xChunk * yChunk * zChunk];
-    rendered = new bool[xChunk * yChunk * zChunk * 6];
+    //rendered = new bool[xChunk * yChunk * zChunk * 6];
 	startX = xpos;
 	startZ = zpos;
 	for (int x = 0; x < xChunk; x++) {
@@ -62,8 +61,6 @@ Chunk::Chunk(int xpos, int zpos, Shader &a_shader)
 Chunk::~Chunk()
 {
 	delete[] cubes;
-    delete[] rendered;
-    delete m_shader;
 }
 
 
@@ -77,25 +74,17 @@ void Chunk::setRebuildStatus(bool status)
 }
 
 
-
 Cube Chunk::cubeAt(int x, int y, int z)
 {
     return cubes[coordToArray(x, y, z)];
 }
 
-bool* Chunk::getRendered(int x, int y, int z)
+
+void Chunk::clearVectors()
 {
-    return &rendered[coordToBool(x, y, z)];
+    vertices.clear();
+    indices.clear();
 }
-
-void Chunk::setRendered(int x, int y, int z, bool r[6])
-{
-
-    for (int i = 0; i < 6; i++) {
-        rendered[coordToBool(x, y, z) + i] = r[i];
-    }
-}
-
 
 void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z)
 // 0: back 1: front 2: left 3: right 4: bottom 5: top
@@ -159,10 +148,7 @@ void Chunk::renderFaces(int height, int width, bool rendered[6], int x, int y, i
     model = glm::mat4(1.0f);
     cubePos = glm::vec3(float(x), float(y), float(z));
 
-    model = glm::translate(model, cubePos);
-    m_shader->setMat4("model", model);
-    
-    
+   
     for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {
             getBufferArray_1face(currCube.getType(), i, height, width, float(x), float(y), float(z));            

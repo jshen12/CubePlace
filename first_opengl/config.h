@@ -12,11 +12,13 @@
 #define NUM_CUBES  (xChunk * yChunk * zChunk)
 
 
-#define speed 10.0f
+#define speed 50.0f
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
 #define FOV 60.0f
+#define MAX_DRAW_DISTANCE 400.0f
+#define MAX_RENDER_DISTANCE 10 // # of chunks away from player (radius)
 
 
 
