@@ -4,7 +4,7 @@ TODO:
 	- Fix texture bleeding from texture atlas mipmaps http://gaarlicbread.com/post/gl_2d_array
 
 - Code structure:
-	- Find easy way to reference block indicies in atlas (enum?)
+	- Find easy way to reference block indicies in atlas (enum?) 
  
 - World generation:
 	- render multiple chunks						  ____DONE____
@@ -12,15 +12,21 @@ TODO:
 	- interesting terrain generation (perlin noise)   ____DONE____
 	- skybox
 	- lighting (ambient occlusion)
-	- derender unseen chunks/ load new chunks
+	- derender unseen chunks/ load new chunks         ____DONE____
 	- flowers
 	- transparent blocks (glass, water)
+	- more biomes
 
 
 - Optimizations:
-	- only calculate rendered faces when needed     ____DONE____
+	- only calculate rendered faces when needed      ____DONE____
 	- octrees ???
 	- greedy meshing ???
+	- fix frame stutters by loading new chunks asynchronously (multithreading??)
+		- https://minecraft.fandom.com/wiki/Chunk
+	- frutsum culling
+	- seperate vertex buffer objects (vbo) for each chunk ???
+
 
 - Player:
 	- block breaking

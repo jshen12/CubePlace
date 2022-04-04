@@ -168,6 +168,7 @@ void Chunk::buildTerrain()
 {
     for (int x = startX; x < xChunk + startX; x++) {
         for (int z = startZ; z < zChunk + startZ; z++) {
+
             float height = ((perlin(x / float(xChunk), z / float(zChunk)) + 1.0f) / 2.0f) * yChunk;
             for (int y = 0; y < int(height); y++) {
                 if (y == int(height) - 1) 

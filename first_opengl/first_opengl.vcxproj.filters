@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="first_opengl.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\VisualStudiodevlib\glad\src\glad.c">
@@ -69,19 +69,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Minecraft-Stone-Block.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="textures\grass-block-side-16x16.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="pixel-1x1.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="minecraft-textureatlas-16x16.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="font_atlas.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
