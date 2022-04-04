@@ -25,7 +25,7 @@ static float vertices[] = {
 */
 
 
-glm::vec3 cameraPos = glm::vec3(8.0f, 25.0f, 8.0f);
+glm::vec3 cameraPos = glm::vec3(xChunk/2.0f, 25.0f, zChunk/2.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -266,7 +266,6 @@ int main(int argc, char** argv)
         ourShader.setMat4("matrix", projection * view);
         // render
         glBindVertexArray(vertex_array);  // do this before drawing different elements
-        
         w->renderChunks(cameraPos.x, cameraPos.z);
 
         // swap buffers and poll

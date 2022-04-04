@@ -24,8 +24,8 @@ World::~World()
 
 void World::initWorld()
 {
-	for (int x = -10; x < 11; x++) {
-		for (int z = -10; z < 11; z++) {
+	for (int x = -(MAX_CHUNK_DISTANCE); x < MAX_CHUNK_DISTANCE + 1; x++) {
+		for (int z = -(MAX_CHUNK_DISTANCE); z < MAX_CHUNK_DISTANCE + 1; z++) {
 			Chunk *ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
 			chunkMap [std::make_pair(x * xChunk, z * zChunk)] = ch;
 		}
@@ -86,6 +86,7 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 		auto adjChunk = chunkMap.find(adjPair);
 		if (adjChunk != chunkMap.end())  // found !
 			rendered[0] = !adjChunk->second->cubeAt(x, y, zChunk - 1).IsActive();
+			
 		else
 			rendered[0] = true; // edge, keep rendered
 	}
@@ -95,9 +96,10 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 
 void World::renderChunks(float currX, float currZ)
 {
+	
 	// delete far away chunks (and set rebuild status)
 	for (auto ch : chunkMap) {
-		if (abs(ch.second->startX - currX) > MAX_RENDER_DISTANCE * xChunk || abs(ch.second->startZ - currZ) > MAX_RENDER_DISTANCE * zChunk) {
+		if (abs(ch.second->startX - currX) > MAX_CHUNK_DISTANCE * xChunk || abs(ch.second->startZ - currZ) > MAX_CHUNK_DISTANCE * zChunk) {
 			delete ch.second;
 			chunkMap.erase(std::make_pair(ch.second->startX, ch.second->startZ));
 
@@ -117,18 +119,44 @@ void World::renderChunks(float currX, float currZ)
 
 		}
 	}
-
+	
+	
 	// add new chunks (and set rebuild status)
-	for (auto ch : chunkMap) {
-
+	int nearestX;
+	int nearestZ;
+	for (int x = -(MAX_CHUNK_DISTANCE - 1) * xChunk; x < (MAX_CHUNK_DISTANCE - 1) * xChunk; x += xChunk) {
+		for (int z = -(MAX_CHUNK_DISTANCE - 1) * zChunk; z < (MAX_CHUNK_DISTANCE - 1) * zChunk ; z += zChunk) {
+			nearestX = std::floor(currX / xChunk) * xChunk + x;
+			nearestZ = std::floor(currZ / zChunk) * zChunk + z;
+			if (chunkMap.find(std::make_pair(nearestX, nearestZ)) == chunkMap.end()) {
+				Chunk* ch = new Chunk(nearestX, nearestZ, *m_shader);
+				ch->buildTerrain();
+				chunkMap[std::make_pair(nearestX, nearestZ)] = ch;
+				
+				auto adjChunk = chunkMap.find(std::make_pair(nearestX - xChunk, nearestZ));   // east
+				if (adjChunk != chunkMap.end()) 
+					adjChunk->second->setRebuildStatus(true);
+				adjChunk = chunkMap.find(std::make_pair(nearestX + xChunk, nearestZ));   // west
+				if (adjChunk != chunkMap.end())
+					adjChunk->second->setRebuildStatus(true);
+				adjChunk = chunkMap.find(std::make_pair(nearestX, nearestZ - zChunk));   // south
+				if (adjChunk != chunkMap.end())
+					adjChunk->second->setRebuildStatus(true);
+				adjChunk = chunkMap.find(std::make_pair(nearestX, nearestZ + zChunk));   // north
+				if (adjChunk != chunkMap.end())
+					adjChunk->second->setRebuildStatus(true);
+			}
+		}
 	}
-
+	
+	
 	// update chunks (if needed)
 	for (auto ch : chunkMap) {
 		
 		Cube currCube;
         // for every cube
 		if (ch.second->doesNeedRebuild()) {   // only after chunk update
+			ch.second->clearVectors();   // reset buffer
 			for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
 				for (int y = 0; y < yChunk; y++) {
 					for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
@@ -154,8 +182,6 @@ void World::renderChunks(float currX, float currZ)
 			ch.second->setRebuildStatus(false);
 		}
 		ch.second->drawMesh(vertex_array, vertex_buffer, element_buffer);
-		
-
 
 	}
 }

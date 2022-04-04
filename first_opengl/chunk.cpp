@@ -84,6 +84,7 @@ void Chunk::clearVectors()
 {
     vertices.clear();
     indices.clear();
+    indCount = 0;
 }
 
 void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z)
@@ -148,7 +149,6 @@ void Chunk::renderFaces(int height, int width, bool rendered[6], int x, int y, i
     model = glm::mat4(1.0f);
     cubePos = glm::vec3(float(x), float(y), float(z));
 
-   
     for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {
             getBufferArray_1face(currCube.getType(), i, height, width, float(x), float(y), float(z));            
