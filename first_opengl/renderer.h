@@ -3,6 +3,21 @@
 
 #include <glad.h>
 #include <GLFW/glfw3.h>
+#include <string>
+#include <vector>
+
+static float vertices[] = {
+    // positions               // texture coords
+     0.45f,  1.0f, 0.0f,  1.0f, 1.0f, // top right
+     0.45f, -1.0f, 0.0f,    1.0f, 0.0f, // bottom right
+    -0.45f, -1.0f, 0.0f,   0.0f, 0.0f, // bottom left
+    -0.45f,  1.0f, 0.0f,   0.0f, 1.0f  // top left 
+};
+static unsigned int indices[] = {
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
+};
+
 
 static void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer,
     static float* vert, static unsigned int* ind,
@@ -25,21 +40,46 @@ static void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint ele
     //glDisableVertexAttribArray(1);
 }
 
-
-static void loadTexture(GLuint texture, unsigned char* data, int width, int height)
+static void drawText(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer, std::string text, float x, float y)
 {
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // TODO: MAKE ONE TRIANGLE MESH, INSTEAD OF MULTIPLE ONES
+    glBindVertexArray(vertex_array);
+    std::vector<float> verts = {};
+    std::vector<unsigned int> inds = {};
+    int offsetX;
+    int offsetY;
+    int indCount = 0;
+    float scale = 0.05f;
+    for (int i = 0; i < text.length(); i++) {
+        offsetX = (text[i] - 32) % 16;
+        offsetY = 7 - (text[i] - 32) / 16;
+        for (int v = 0; v < 4; v++)
+        {
 
-    // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+            // vertecies
+            verts.push_back( (vertices[v * 5]) * scale + x + (scale * i));
+            verts.push_back( (vertices[v * 5 + 1]) * scale + y);
+            verts.push_back(vertices[v * 5 + 2]);
+            // uv tex coords
+            verts.push_back(vertices[v * 5 + 3] / 16.0f + (offsetX / 16.0f));
+            verts.push_back(vertices[v * 5 + 4] / 8.0f + (offsetY / 8.0f));
 
+        }
+
+        inds.push_back(indCount);
+        inds.push_back(indCount + 1);
+        inds.push_back(indCount + 3);
+        inds.push_back(indCount + 1);
+        inds.push_back(indCount + 2);
+        inds.push_back(indCount + 3);
+        indCount += 4;
+
+    }
+
+    drawBufferData(vertex_array, vertex_buffer, element_buffer, &verts[0], &inds[0],
+        sizeof(float) * verts.size(), sizeof(unsigned int) * inds.size(), inds.size());
 }
+
 
 
 #endif 

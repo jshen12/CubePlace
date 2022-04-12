@@ -175,8 +175,11 @@
   <ItemGroup>
     <None Include="shader_fragment.glsl" />
     <None Include="shader_vertex.glsl" />
+    <None Include="text_fragment.glsl" />
+    <None Include="text_vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="font_atlas.png" />
     <Image Include="minecraft-textureatlas-16x16.png" />
   </ItemGroup>
   <ItemGroup>

@@ -141,13 +141,7 @@ void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width
 
 void Chunk::renderFaces(int height, int width, bool rendered[6], int x, int y, int z)
 {
-    glm::mat4 model;
-    glm::vec3 cubePos;
-    
     Cube currCube = cubeAt(x - startX, y, z - startZ);
-
-    model = glm::mat4(1.0f);
-    cubePos = glm::vec3(float(x), float(y), float(z));
 
     for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {

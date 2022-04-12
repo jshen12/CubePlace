@@ -67,9 +67,18 @@
     <None Include="shader_vertex.glsl">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="text_vertex.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="text_fragment.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="minecraft-textureatlas-16x16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="font_atlas.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
