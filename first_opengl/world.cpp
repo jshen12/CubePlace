@@ -39,6 +39,20 @@ void World::buildWorld()
 	}
 }
 
+void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
+{
+	// iteratively step through raycast, checking if block is present
+	// to find face, check which coordinate plane was crossed (1.0 x, 2.0 y, etc.) Use math.floor()
+	glm::vec3 currentPoint = glm::vec3(posVector.x, posVector.y, posVector.z);
+	double distTraveled = 0;
+	while (distTraveled < MAX_SELECTION_DISTANCE)
+	{
+		distTraveled += STEPPING_DISTANCE;
+	}
+	
+
+}
+
 void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[])
 {
 	

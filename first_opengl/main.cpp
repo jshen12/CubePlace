@@ -6,12 +6,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <sstream>
+#include <iomanip>
 #include "stb_image.h"
 #include "chunk.h"
 #include "config.h"
 #include "renderer.h"
 #include "shader.h"
 #include "world.h"
+
 
 /*
 // normalized unique vertecies, z-coords are 0 so 2d
@@ -42,6 +45,7 @@ float pitch = 0.0f;
 
 
 bool wireframeOn = false;
+bool textRendered = false;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -64,6 +68,9 @@ void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, 
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             wireframeOn = false;
         }
+    }
+    else if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
+        textRendered = !textRendered;
     }
     else if (action == GLFW_PRESS)
         currKeysDown[key] = true;
@@ -216,7 +223,7 @@ int main(int argc, char** argv)
 
     // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    //glGenerateMipmap(GL_TEXTURE_2D);
     textShader.use();
     textShader.setInt("ourTexture1", 1);
 
@@ -261,6 +268,7 @@ int main(int argc, char** argv)
     double currentFrame;
     float del;
     float lastFPS = 0.0f;
+    std::stringstream text;
 
     World* w = new World(blockShader, height, width, vertex_arrays[0], vertex_buffers[0], element_buffers[0]);
     w->initWorld();
@@ -289,16 +297,22 @@ int main(int argc, char** argv)
         glClearColor(120.0f / 256.0f, 167.0f / 256.0f, 255.0f / 256.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //printf("x: %f y: %f z: %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
         // draw elements
         // transformations
         glm::mat4 view = glm::mat4(1.0f);   // view matrix (position camera i.e. shift objects)
         
         
-        // render
-        textShader.use();
-        drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], "FPS: " + std::to_string(lastFPS), -0.95f, 0.95f);
+        // text render
+        if (textRendered) {
+            text << "FPS: " << std::fixed << std::setprecision(2) << lastFPS;
+            text << " Camera Vec: (" << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << ")";
+            //text << "  Curr Cords: (" << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")";
+            textShader.use();
+            drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], text.str(), -0.95f, 0.95f);
+            text.str(std::string());   // clear stringstream
+        }
 
+        // block render
         blockShader.use();
         // create view matrix for camera
         // (position, target (pos), up vector

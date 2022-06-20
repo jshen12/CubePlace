@@ -79,6 +79,17 @@ Cube Chunk::cubeAt(int x, int y, int z)
     return cubes[coordToArray(x, y, z)];
 }
 
+void Chunk::deleteCube(int x, int y, int z)
+{
+    cubes[coordToArray(x, y, z)] = Cube();  // default not active
+    clearVectors();
+}
+
+void Chunk::addCube(BlockType type, int x, int y, int z)
+{
+    cubes[coordToArray(x, y, z)] = Cube(type, true);
+}
+
 
 void Chunk::clearVectors()
 {

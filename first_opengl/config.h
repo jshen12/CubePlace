@@ -20,6 +20,8 @@
 #define MAX_DRAW_DISTANCE 400.0f
 #define MAX_CHUNK_DISTANCE 10 // # of chunks away from player (radius)
 
+#define MAX_SELECTION_DISTANCE 5 // # block player can break/place from
+#define STEPPING_DISTANCE 0.5 // # just needs to be less than 1
 
 
 #endif 

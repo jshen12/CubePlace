@@ -35,6 +35,7 @@ public:
 	~World();
 	void initWorld();
 	void buildWorld();
+	void breakBlock(glm::vec3 posVector, glm::vec3 sightVector);
 	void renderChunks(float currX, float currZ);
 	void calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[]);
 

@@ -57,7 +57,7 @@ static void drawText(GLuint vertex_array, GLuint vertex_buffer, GLuint element_b
         {
 
             // vertecies
-            verts.push_back( (vertices[v * 5]) * scale + x + (scale * i));
+            verts.push_back( (vertices[v * 5]) * scale + x + (scale * i * 0.75f));
             verts.push_back( (vertices[v * 5 + 1]) * scale + y);
             verts.push_back(vertices[v * 5 + 2]);
             // uv tex coords

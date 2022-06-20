@@ -28,6 +28,8 @@ public:
 	void renderFaces(int height, int width, bool rendered[6], int x, int y, int z);
 	void buildTerrain();
 	Cube cubeAt(int x, int y, int z);
+	void deleteCube(int x, int y, int z);
+	void addCube(BlockType type, int x, int y, int z);
 	void clearVectors();
 	void getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z);
 	void drawMesh(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer);

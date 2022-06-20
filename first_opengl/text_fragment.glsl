@@ -11,5 +11,6 @@ void main()
     vec4 texColor = texture(ourTexture1, TexCoord);// * vec4(ourColor, 1.0);
     if (texColor.a < 0.1)   // transparency check
         discard;
+    //texColor.a = max(texColor.a, 0.4);
     FragColor = texColor;
 }

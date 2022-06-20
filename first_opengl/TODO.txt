@@ -33,4 +33,4 @@ TODO:
 	- physics/gravity
 
 - Other:
-	- text rendering
+	- text rendering                                 ____DONE____
