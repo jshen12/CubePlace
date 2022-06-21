@@ -54,8 +54,7 @@ Chunk::Chunk(int xpos, int zpos, Shader &a_shader)
 	}
     needsRebuild = true;
     m_shader = &a_shader;
-    vertices = {};
-    indCount = 0;
+    numFaces = 0;
 }
 
 Chunk::~Chunk()
@@ -82,7 +81,6 @@ Cube Chunk::cubeAt(int x, int y, int z)
 void Chunk::deleteCube(int x, int y, int z)
 {
     cubes[coordToArray(x, y, z)] = Cube();  // default not active
-    clearVectors();
 }
 
 void Chunk::addCube(BlockType type, int x, int y, int z)
@@ -91,14 +89,8 @@ void Chunk::addCube(BlockType type, int x, int y, int z)
 }
 
 
-void Chunk::clearVectors()
-{
-    vertices.clear();
-    indices.clear();
-    indCount = 0;
-}
 
-void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z)
+void Chunk::getBufferArray_1face(std::vector<float> &verts, std::vector<unsigned int> &inds, int &indCount, BlockType type, int face, int height, int width, float x, float y, float z)
 // 0: back 1: front 2: left 3: right 4: bottom 5: top
 {
 
@@ -130,43 +122,39 @@ void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width
     for (int v = 0; v < 4; v++)
     {
         // vertecies
-        vertices.push_back(reference_vertices[face * 20 + v * 5] + x);
-        vertices.push_back(reference_vertices[face * 20 + v * 5 + 1] + y);
-        vertices.push_back(reference_vertices[face * 20 + v * 5 + 2] + z);
+        verts.push_back(reference_vertices[face * 20 + v * 5] + x);
+        verts.push_back(reference_vertices[face * 20 + v * 5 + 1] + y);
+        verts.push_back(reference_vertices[face * 20 + v * 5 + 2] + z);
         // uv tex coords
-        vertices.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
-        vertices.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
+        verts.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
+        verts.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
 
     }
 
-    indices.push_back(indCount);
-    indices.push_back(indCount + 1);
-    indices.push_back(indCount + 2);
-    indices.push_back(indCount + 2);
-    indices.push_back(indCount + 3);
-    indices.push_back(indCount);
+    inds.push_back(indCount);
+    inds.push_back(indCount + 1);
+    inds.push_back(indCount + 2);
+    inds.push_back(indCount + 2);
+    inds.push_back(indCount + 3);
+    inds.push_back(indCount);
 
     indCount += 4;
+    numFaces++;
 
 }
 
-void Chunk::renderFaces(int height, int width, bool rendered[6], int x, int y, int z)
+void Chunk::renderFaces(std::vector<float> &verts, std::vector<unsigned int> &inds, int &indCount, int height, int width, bool rendered[6], int x, int y, int z)
 {
     Cube currCube = cubeAt(x - startX, y, z - startZ);
 
     for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {
-            getBufferArray_1face(currCube.getType(), i, height, width, float(x), float(y), float(z));            
+            getBufferArray_1face(verts, inds, indCount, currCube.getType(), i, height, width, float(x), float(y), float(z));            
         }
     }
 
 }
 
-void Chunk::drawMesh(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer)
-{
-    drawBufferData(vertex_array, vertex_buffer, element_buffer, &vertices[0], &indices[0],
-        sizeof(float) * vertices.size(), sizeof(unsigned int) * indices.size(), indices.size());
-}
 
 
 void Chunk::buildTerrain()

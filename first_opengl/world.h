@@ -35,9 +35,13 @@ public:
 	~World();
 	void initWorld();
 	void buildWorld();
+	void clearVectors();
 	void breakBlock(glm::vec3 posVector, glm::vec3 sightVector);
+	void buildIndicesList();
 	void renderChunks(float currX, float currZ);
 	void calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[]);
+	void drawMesh();
+
 
 private:
 	std::unordered_map<std::pair<int, int>, Chunk*, pair_hash> chunkMap;   // maps coordinates to active chunks
@@ -47,6 +51,9 @@ private:
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint element_buffer;
+	std::vector<float> total_vertices;
+	std::vector<unsigned int> total_indices;
+	int indCount;
 };
 
 

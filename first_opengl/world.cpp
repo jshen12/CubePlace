@@ -30,6 +30,9 @@ void World::initWorld()
 			chunkMap [std::make_pair(x * xChunk, z * zChunk)] = ch;
 		}
 	}
+	total_vertices = {};
+	total_indices = {};
+	indCount = 0;
 }
 
 void World::buildWorld()
@@ -37,6 +40,13 @@ void World::buildWorld()
 	for (auto ch : chunkMap) {
 		ch.second->buildTerrain();
 	}
+}
+
+void World::clearVectors()
+{
+	total_vertices.clear();
+	total_indices.clear();
+	indCount = 0;
 }
 
 void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
@@ -51,6 +61,24 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 	}
 	
 
+}
+
+void World::buildIndicesList()
+{
+	/*
+	for (auto ch : chunkMap) {
+		for (int i = 0; i < ch.second->numFaces; i++) {
+			total_indices.push_back(indCount);
+			total_indices.push_back(indCount + 1);
+			total_indices.push_back(indCount + 2);
+			total_indices.push_back(indCount + 2);
+			total_indices.push_back(indCount + 3);
+			total_indices.push_back(indCount);
+
+			indCount += 4;
+		}
+	}
+	*/
 }
 
 void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[])
@@ -108,15 +136,21 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 		rendered[0] = !currChunk.cubeAt(x, y, z - 1).IsActive();
 }
 
+void World::drawMesh()
+{
+	drawBufferData(vertex_array, vertex_buffer, element_buffer, &total_vertices[0], &total_indices[0],
+		sizeof(float) * total_vertices.size(), sizeof(unsigned int) * total_indices.size(), total_indices.size());
+}
+
 void World::renderChunks(float currX, float currZ)
 {
-	
+	bool needsRebuild = false;
 	// delete far away chunks (and set rebuild status)
 	for (auto ch : chunkMap) {
 		if (abs(ch.second->startX - currX) > MAX_CHUNK_DISTANCE * xChunk || abs(ch.second->startZ - currZ) > MAX_CHUNK_DISTANCE * zChunk) {
 			delete ch.second;
 			chunkMap.erase(std::make_pair(ch.second->startX, ch.second->startZ));
-
+			needsRebuild = true;
 			// set rebuild status for adjecent chunks, if present
 			auto adjChunk = chunkMap.find(std::make_pair(ch.second->startX - xChunk, ch.second->startZ));   // south
 			if (adjChunk != chunkMap.end())
@@ -130,7 +164,6 @@ void World::renderChunks(float currX, float currZ)
 			adjChunk = chunkMap.find(std::make_pair(ch.second->startX, ch.second->startZ + zChunk));   // west
 			if (adjChunk != chunkMap.end())
 				adjChunk->second->setRebuildStatus(true);
-
 		}
 	}
 	
@@ -143,6 +176,7 @@ void World::renderChunks(float currX, float currZ)
 			nearestX = std::floor(currX / xChunk) * xChunk + x;
 			nearestZ = std::floor(currZ / zChunk) * zChunk + z;
 			if (chunkMap.find(std::make_pair(nearestX, nearestZ)) == chunkMap.end()) {
+				needsRebuild = true;
 				Chunk* ch = new Chunk(nearestX, nearestZ, *m_shader);
 				ch->buildTerrain();
 				chunkMap[std::make_pair(nearestX, nearestZ)] = ch;
@@ -163,10 +197,43 @@ void World::renderChunks(float currX, float currZ)
 		}
 	}
 	
-	
+	if (needsRebuild)
+	{
+		clearVectors();
+		for (auto ch : chunkMap) {
+			Cube currCube;
+			// for every cube
+			//ch.second->clearVectors();   // reset buffer
+			for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
+				for (int y = 0; y < yChunk; y++) {
+					for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
+
+						currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
+						if (currCube.IsActive()) {
+
+							bool rendered[6] = {};
+							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
+
+							int facesCount = 0;
+							for (int i = 0; i < 6; i++)
+								facesCount += rendered[i];
+							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
+								ch.second->renderFaces(total_vertices, total_indices, indCount, height, width, rendered, x, y, z);
+							}
+
+						}
+
+					}
+				}
+			}
+			ch.second->setRebuildStatus(false);
+		}
+		buildIndicesList();
+	}
+	drawMesh();
+	/*
 	// update chunks (if needed)
 	for (auto ch : chunkMap) {
-		
 		Cube currCube;
         // for every cube
 		if (ch.second->doesNeedRebuild()) {   // only after chunk update
@@ -198,4 +265,5 @@ void World::renderChunks(float currX, float currZ)
 		ch.second->drawMesh(vertex_array, vertex_buffer, element_buffer);
 
 	}
+	*/
 }
