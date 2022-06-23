@@ -69,7 +69,7 @@ void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, 
             wireframeOn = false;
         }
     }
-    else if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS) {
         textRendered = !textRendered;
     }
     else if (action == GLFW_PRESS)
@@ -245,7 +245,7 @@ int main(int argc, char** argv)
     glGenerateMipmap(GL_TEXTURE_2D);
     blockShader.use();
     blockShader.setInt("ourTexture1", 0);
-
+    blockShader.setFloat("fog_distance", xChunk * MAX_CHUNK_DISTANCE);
     stbi_image_free(data);
     
 
@@ -305,8 +305,8 @@ int main(int argc, char** argv)
         // text render
         if (textRendered) {
             text << "FPS: " << std::fixed << std::setprecision(2) << lastFPS;
-            text << " Camera Vec: (" << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << ")";
-            //text << "  Curr Cords: (" << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")";
+            //text << " Camera Vec: (" << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << ")";
+            text << "  Curr Cords: (" << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")";
             textShader.use();
             drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], text.str(), -0.95f, 0.95f);
             text.str(std::string());   // clear stringstream
@@ -318,6 +318,7 @@ int main(int argc, char** argv)
         // (position, target (pos), up vector
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         blockShader.setMat4("matrix", projection * view);
+        blockShader.setVec3("camera", cameraPos);
         glBindVertexArray(vertex_arrays[0]);  // do this before drawing different elements
         w->renderChunks(cameraPos.x, cameraPos.z);
 

@@ -12,7 +12,7 @@
 #define NUM_CUBES  (xChunk * yChunk * zChunk)
 
 
-#define speed 30.0f
+#define speed 20.0f
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900

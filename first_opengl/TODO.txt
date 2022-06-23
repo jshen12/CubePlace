@@ -25,7 +25,6 @@ TODO:
 	- fix frame stutters by loading new chunks asynchronously (multithreading??)
 		- https://minecraft.fandom.com/wiki/Chunk
 	- frutsum culling
-	- seperate vertex buffer objects (vbo) for each chunk ???
 
 
 - Player:
