@@ -15,7 +15,8 @@ void main()
 {
    gl_Position = matrix * vec4(aPos, 1.0);  // order is important !!!! (right to left)
    //ourColor = vec3(aColor);
+   int fog_size = 16;
    float cameraDistance = distance(camera, aPos);
-   fogFactor = pow(clamp(cameraDistance / fog_distance, 0.0, 1.0), 4.0);
+   fogFactor = clamp(((cameraDistance - fog_distance) / fog_size) + 1, 0.0, 1.0);
    TexCoord = aTexCoord;
 }

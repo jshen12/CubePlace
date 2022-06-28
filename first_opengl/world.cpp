@@ -1,5 +1,6 @@
 #include "world.h"
 #include <vector>
+#include <omp.h>
 
 #define coordToArray(x, y, z) (x * yChunk * zChunk + y * zChunk + z)
 
@@ -49,6 +50,28 @@ void World::clearVectors()
 	indCount = 0;
 }
 
+void World::rebuildIndices(int numInd)
+{
+	if (numInd == total_indices.size())
+		return;
+	else if (numInd > total_indices.size()) {   // grow total_indices
+		total_indices.reserve(numInd);
+		while (numInd > total_indices.size()) {
+			total_indices.push_back(indCount);
+			total_indices.push_back(indCount + 1);
+			total_indices.push_back(indCount + 2);
+			total_indices.push_back(indCount + 2);
+			total_indices.push_back(indCount + 3);
+			total_indices.push_back(indCount);
+
+			indCount += 4;
+		}
+	}
+	else {                                      // shrink total_indices
+		total_indices.resize(numInd);
+	}
+}
+
 void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 {
 	// iteratively step through raycast, checking if block is present
@@ -63,23 +86,6 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 
 }
 
-void World::buildIndicesList()
-{
-	/*
-	for (auto ch : chunkMap) {
-		for (int i = 0; i < ch.second->numFaces; i++) {
-			total_indices.push_back(indCount);
-			total_indices.push_back(indCount + 1);
-			total_indices.push_back(indCount + 2);
-			total_indices.push_back(indCount + 2);
-			total_indices.push_back(indCount + 3);
-			total_indices.push_back(indCount);
-
-			indCount += 4;
-		}
-	}
-	*/
-}
 
 void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[])
 {
@@ -142,6 +148,15 @@ void World::drawMesh()
 		sizeof(float) * total_vertices.size(), sizeof(unsigned int) * total_indices.size(), total_indices.size());
 }
 
+// takes copy of world (or list of changes?), returns (or sets) VBO: maintain queue of threads
+// share memory? (but what if memory changes while viewing) or send copy? (too large)
+// then communicate with main thread indicating that they are done (unless shared memory)
+// idea: instead of shared memory, use copy of data from each chunk class???
+void World::UpdateVBO()
+{
+	
+}
+
 void World::renderChunks(float currX, float currZ)
 {
 	bool needsRebuild = false;
@@ -200,6 +215,7 @@ void World::renderChunks(float currX, float currZ)
 	if (needsRebuild)
 	{
 		clearVectors();
+		unsigned int total_faces = 0;
 		for (auto ch : chunkMap) {
 			Cube currCube;
 			// for every cube
@@ -218,7 +234,8 @@ void World::renderChunks(float currX, float currZ)
 							for (int i = 0; i < 6; i++)
 								facesCount += rendered[i];
 							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-								ch.second->renderFaces(total_vertices, total_indices, indCount, height, width, rendered, x, y, z);
+								ch.second->renderFaces(total_vertices, height, width, rendered, x, y, z);
+								total_faces += facesCount;
 							}
 
 						}
@@ -228,42 +245,9 @@ void World::renderChunks(float currX, float currZ)
 			}
 			ch.second->setRebuildStatus(false);
 		}
-		buildIndicesList();
+		rebuildIndices(total_faces * 6);
+		
 	}
 	drawMesh();
-	/*
-	// update chunks (if needed)
-	for (auto ch : chunkMap) {
-		Cube currCube;
-        // for every cube
-		if (ch.second->doesNeedRebuild()) {   // only after chunk update
-			ch.second->clearVectors();   // reset buffer
-			for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
-				for (int y = 0; y < yChunk; y++) {
-					for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
 
-						currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
-						if (currCube.IsActive()) {
-
-							bool rendered[6] = {};
-							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
-
-							int facesCount = 0;
-							for (int i = 0; i < 6; i++)
-								facesCount += rendered[i];
-							if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-								ch.second->renderFaces(height, width, rendered, x, y, z);
-							}
-							
-						}
-
-					}
-				}
-			}
-			ch.second->setRebuildStatus(false);
-		}
-		ch.second->drawMesh(vertex_array, vertex_buffer, element_buffer);
-
-	}
-	*/
 }

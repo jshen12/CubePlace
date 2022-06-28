@@ -90,7 +90,7 @@ void Chunk::addCube(BlockType type, int x, int y, int z)
 
 
 
-void Chunk::getBufferArray_1face(std::vector<float> &verts, std::vector<unsigned int> &inds, int &indCount, BlockType type, int face, int height, int width, float x, float y, float z)
+void Chunk::getBufferArray_1face(std::vector<float> &verts, BlockType type, int face, int height, int width, float x, float y, float z)
 // 0: back 1: front 2: left 3: right 4: bottom 5: top
 {
 
@@ -131,28 +131,16 @@ void Chunk::getBufferArray_1face(std::vector<float> &verts, std::vector<unsigned
 
     }
 
-    inds.push_back(indCount);
-    inds.push_back(indCount + 1);
-    inds.push_back(indCount + 2);
-    inds.push_back(indCount + 2);
-    inds.push_back(indCount + 3);
-    inds.push_back(indCount);
-
-    indCount += 4;
-    numFaces++;
-
 }
 
-void Chunk::renderFaces(std::vector<float> &verts, std::vector<unsigned int> &inds, int &indCount, int height, int width, bool rendered[6], int x, int y, int z)
+void Chunk::renderFaces(std::vector<float> &verts, int height, int width, bool rendered[6], int x, int y, int z)
 {
     Cube currCube = cubeAt(x - startX, y, z - startZ);
-
     for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {
-            getBufferArray_1face(verts, inds, indCount, currCube.getType(), i, height, width, float(x), float(y), float(z));            
+            getBufferArray_1face(verts, currCube.getType(), i, height, width, float(x), float(y), float(z));  
         }
     }
-
 }
 
 

@@ -120,10 +120,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VisualStudiodevlib\glm-master;C:\VisualStudiodevlib\glm-master\glm;C:\VisualStudiodevlib\glad\include\KHR;C:\VisualStudiodevlib\glad\include\glad;C:\VisualStudiodevlib\glad\include;C:\VisualStudiodevlib\GLFW_64bit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Custom</Optimization>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,10 +138,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VisualStudiodevlib\glm-master;C:\VisualStudiodevlib\glm-master\glm;C:\VisualStudiodevlib\glad\include\KHR;C:\VisualStudiodevlib\glad\include\glad;C:\VisualStudiodevlib\glad\include;C:\VisualStudiodevlib\GLFW_64bit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Custom</Optimization>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

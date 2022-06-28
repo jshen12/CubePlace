@@ -26,12 +26,12 @@ public:
 	~Chunk();
 	bool doesNeedRebuild();
 	void setRebuildStatus(bool status);
-	void renderFaces(std::vector<float> &verts, std::vector<unsigned int> &inds, int &indCount, int height, int width, bool rendered[6], int x, int y, int z);
+	void renderFaces(std::vector<float> &verts, int height, int width, bool rendered[6], int x, int y, int z);
 	void buildTerrain();
 	Cube cubeAt(int x, int y, int z);
 	void deleteCube(int x, int y, int z);
 	void addCube(BlockType type, int x, int y, int z);
-	void getBufferArray_1face(std::vector<float> &verts, std::vector<unsigned int> &inds, int &indCount, BlockType type, int face, int height, int width, float x, float y, float z);
+	void getBufferArray_1face(std::vector<float> &verts, BlockType type, int face, int height, int width, float x, float y, float z);
 
 private:
 	// "3-d" array of cubes

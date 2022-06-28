@@ -36,8 +36,9 @@ public:
 	void initWorld();
 	void buildWorld();
 	void clearVectors();
+	void rebuildIndices(int numInd);
 	void breakBlock(glm::vec3 posVector, glm::vec3 sightVector);
-	void buildIndicesList();
+	void UpdateVBO();
 	void renderChunks(float currX, float currZ);
 	void calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[]);
 	void drawMesh();
@@ -50,7 +51,7 @@ private:
 	int width;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-	GLuint element_buffer;
+	GLuint element_buffer;  
 	std::vector<float> total_vertices;
 	std::vector<unsigned int> total_indices;
 	int indCount;
