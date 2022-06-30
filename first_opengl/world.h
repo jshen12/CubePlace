@@ -9,8 +9,16 @@
 #include "config.h"
 #include "chunk.h"
 #include <vector>
+#include <stack>
 #include "shader.h"
+#include <thread>
 
+
+enum class ThreadStatus {
+	Idle = 0,
+	Working,
+	Done
+};
 
 
 // hash function for pair
@@ -54,6 +62,11 @@ private:
 	GLuint element_buffer;  
 	std::vector<float> total_vertices;
 	std::vector<unsigned int> total_indices;
+	std::vector<float> new_vertices;
+	std::vector<unsigned int> new_indices;
+	std::stack<std::thread> threadstack;
+	ThreadStatus threadstatus;
+	bool needsRebuild;
 	int indCount;
 };
 
