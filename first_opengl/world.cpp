@@ -248,7 +248,10 @@ void World::renderChunks(float currX, float currZ)
 	}
 	if (needsRebuild && (threadstatus == ThreadStatus::Idle))
 	{
-		threadstack.push(std::thread(&World::UpdateVBO, this));  // later push onto a stack
+		for (auto& t : threadstack)
+			t.join();
+		threadstack.clear();
+		threadstack.push_back(std::thread(&World::UpdateVBO, this));  // later push onto a stack
 		/*
 		auto t1 = std::chrono::high_resolution_clock::now();
 		
@@ -259,12 +262,13 @@ void World::renderChunks(float currX, float currZ)
 		
 	}
 	else if (needsRebuild && (threadstatus == ThreadStatus::Done)) {
- 
+		for (auto& t : threadstack) 
+			t.join();
+		threadstack.clear();
 		total_vertices = new_vertices;
 		total_indices = new_indices;
 		threadstatus = ThreadStatus::Idle;
 		needsRebuild = false;
-		//threadstack.pop();
 	}
 	drawMesh();
 

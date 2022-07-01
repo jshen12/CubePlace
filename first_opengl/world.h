@@ -9,7 +9,6 @@
 #include "config.h"
 #include "chunk.h"
 #include <vector>
-#include <stack>
 #include "shader.h"
 #include <thread>
 
@@ -64,7 +63,7 @@ private:
 	std::vector<unsigned int> total_indices;
 	std::vector<float> new_vertices;
 	std::vector<unsigned int> new_indices;
-	std::stack<std::thread> threadstack;
+	std::vector<std::thread> threadstack;
 	ThreadStatus threadstatus;
 	bool needsRebuild;
 	int indCount;

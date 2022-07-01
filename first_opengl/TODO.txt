@@ -16,6 +16,7 @@ TODO:
 	- flowers
 	- transparent blocks (glass, water)
 	- more biomes
+	- more interesting workd gen
 
 
 - Optimizations:
@@ -23,7 +24,7 @@ TODO:
 	- octrees ???
 	- greedy meshing ???
 	- fix frame stutters by loading new chunks asynchronously (multithreading??)
-		- https://minecraft.fandom.com/wiki/Chunk
+		- https://minecraft.fandom.com/wiki/Chunk    ____DONE_____
 	- frutsum culling
 
 

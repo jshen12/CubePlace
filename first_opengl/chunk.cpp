@@ -1,6 +1,7 @@
 #include "chunk.h"
 #include "config.h"
 #include "noise.h"
+#include "SimplexNoise.h"
 
 #define coordToArray(x, y, z) (x * yChunk * zChunk + y * zChunk + z)
 
@@ -147,10 +148,13 @@ void Chunk::renderFaces(std::vector<float> &verts, int height, int width, bool r
 
 void Chunk::buildTerrain()
 {
+    SimplexNoise noise_gen = SimplexNoise();
     for (int x = startX; x < xChunk + startX; x++) {
         for (int z = startZ; z < zChunk + startZ; z++) {
-
+            //float height = ((noise_gen.fractal(2, x / float(xChunk), z / float(zChunk)) + 1.0f) / 2.0f) * yChunk;
             float height = ((perlin(x / float(xChunk), z / float(zChunk)) + 1.0f) / 2.0f) * yChunk;
+            //float height = ((noise_gen.noise(x / float(xChunk), z / float(zChunk)) + 1.0f) / 2.0f) * yChunk;
+            //printf("%f\n", perlin(x / float(xChunk), z / float(zChunk)));
             for (int y = 0; y < int(height); y++) {
                 if (y == int(height) - 1) 
                     cubes[coordToArray((x - startX), y, (z - startZ))].setType(BlockType::BlockType_Grass);
