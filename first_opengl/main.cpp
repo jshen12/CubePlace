@@ -46,6 +46,8 @@ float pitch = 0.0f;
 
 bool wireframeOn = false;
 bool textRendered = false;
+bool breakBlock = false;
+bool crosshairOn = true;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -136,6 +138,12 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     cameraFront = glm::normalize(direction);
 }
 
+void mouseButtonCallBack(GLFWwindow* window, int button, int action, int mods) {
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) 
+        breakBlock = true;
+    
+}
+
 unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrChannels)
 {
     
@@ -191,23 +199,25 @@ int main(int argc, char** argv)
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, updateKeyboardInput);
     glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallBack);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Shader blockShader("shader_vertex.glsl", "shader_fragment.glsl");
     Shader textShader("text_vertex.glsl", "text_fragment.glsl");
+    Shader lineShader("line_vertex.glsl", "line_fragment.glsl");
 
     // create bindable vertex array and buffers
 
-    GLuint vertex_arrays[2], vertex_buffers[2], element_buffers[2];   // 0 is block, 1 is text
-    glGenVertexArrays(2, vertex_arrays);
-    glGenBuffers(2, vertex_buffers);               // generate 1 buffer w/ id vertex_buffer
-    glGenBuffers(2, element_buffers);
+    GLuint vertex_arrays[3], vertex_buffers[3], element_buffers[3];   // 0 is block, 1 is text, 2 is line
+    glGenVertexArrays(3, vertex_arrays);
+    glGenBuffers(3, vertex_buffers);               // generate 1 buffer w/ id vertex_buffer
+    glGenBuffers(3, element_buffers);
     //setUpBufferData(vertex_array, vertex_buffer, element_buffer);
 
 
     // generate textures
     
-    GLuint textures[2];
+    GLuint textures[2];   // 0 is block atlas, 1 is text atlas
     int width, height, nrChannels;
     
     glGenTextures(2, textures);
@@ -310,6 +320,17 @@ int main(int argc, char** argv)
             textShader.use();
             drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], text.str(), -0.95f, 0.95f);
             text.str(std::string());   // clear stringstream
+        }
+        // crosshair render
+        if (crosshairOn) {
+            lineShader.use();
+            drawLines(vertex_arrays[2], vertex_buffers[2]);
+         }
+        
+        // block breaking
+        if (breakBlock) {
+            w->breakBlock(cameraPos, cameraFront);
+            breakBlock = false;
         }
 
         // block render

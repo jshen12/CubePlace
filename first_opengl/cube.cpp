@@ -6,14 +6,12 @@
 
 Cube::Cube()
 {
-    isActive = false;
-    type = BlockType::BlockType_Default;
+    type = BlockType::BlockType_Air;
 
 }
 
-Cube::Cube(BlockType t, bool active)
+Cube::Cube(BlockType t)
 {
-    isActive = active;
     type = t;
 }
 
@@ -25,13 +23,9 @@ Cube::~Cube()
 
 bool Cube::IsActive()
 {
-    return isActive;
+    return (type!=BlockType::BlockType_Air);
 }
 
-void Cube::setActive(bool active)
-{
-    isActive = active;
-}
 
 BlockType Cube::getType()
 {

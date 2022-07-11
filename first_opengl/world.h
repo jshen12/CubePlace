@@ -61,7 +61,6 @@ private:
 	GLuint element_buffer;  
 	std::vector<float> total_vertices;
 	std::vector<unsigned int> total_indices;
-	std::vector<float> new_vertices;
 	std::vector<unsigned int> new_indices;
 	std::vector<std::thread> threadstack;
 	ThreadStatus threadstatus;

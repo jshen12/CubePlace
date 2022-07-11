@@ -21,22 +21,25 @@ public:
 	int startX;
 	int startZ;	
 	unsigned int numCubes;
-	unsigned int numFaces;
+	unsigned int numIndices;
 	Chunk(int xpos, int zpos, Shader &shader);
 	~Chunk();
 	bool doesNeedRebuild();
 	void setRebuildStatus(bool status);
-	void renderFaces(std::vector<float> &verts, int height, int width, bool rendered[6], int x, int y, int z);
+	void renderFaces(int height, int width, bool rendered[6], int x, int y, int z);
 	void buildTerrain();
-	Cube cubeAt(int x, int y, int z);
+	Cube& cubeAt(int x, int y, int z);
 	void deleteCube(int x, int y, int z);
 	void addCube(BlockType type, int x, int y, int z);
-	void getBufferArray_1face(std::vector<float> &verts, BlockType type, int face, int height, int width, float x, float y, float z);
+	std::vector<float> getVertices();
+	void clearVertices();
+	void getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z);
 
 private:
 	// "3-d" array of cubes
 	Cube * cubes;  
 	Shader * m_shader;
+	std::vector<float> vertices;
 	bool needsRebuild;
 
 };

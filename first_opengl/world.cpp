@@ -37,7 +37,6 @@ void World::initWorld()
 	}
 	total_vertices = {};
 	total_indices = {};
-	new_vertices = {};
 	new_indices = {};
 }
 
@@ -82,13 +81,31 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 	// iteratively step through raycast, checking if block is present
 	// to find face, check which coordinate plane was crossed (1.0 x, 2.0 y, etc.) Use math.floor()
 	glm::vec3 currentPoint = glm::vec3(posVector.x, posVector.y, posVector.z);
+	int x, y, z;
 	double distTraveled = 0;
+	double step = STEPPING_DISTANCE;
 	while (distTraveled < MAX_SELECTION_DISTANCE)
 	{
+		currentPoint.x += sightVector.x * STEPPING_DISTANCE;
+		currentPoint.y += sightVector.y * STEPPING_DISTANCE;
+		currentPoint.z += sightVector.z * STEPPING_DISTANCE;
+		x = static_cast<int>(currentPoint.x);
+		y = static_cast<int>(currentPoint.y);
+		z = static_cast<int>(currentPoint.z);
+		auto ch = chunkMap.find(std::pair<int, int>(std::floor(x / xChunk) * xChunk, std::floor( z / zChunk) * zChunk));
+		if (ch == chunkMap.end())
+			return;
+		if (ch->second->cubeAt(x % xChunk, y, z % zChunk).getType() != BlockType::BlockType_Air) {
+			ch->second->cubeAt(x % xChunk, y, z % zChunk).setType(BlockType::BlockType_Air);
+			ch->second->setRebuildStatus(true);
+			// TODO: add chunk borders too 
+			printf("%d %d %d", x, y, z);
+
+			needsRebuild = true;
+			return;
+		}
 		distTraveled += STEPPING_DISTANCE;
 	}
-	
-
 }
 
 
@@ -159,38 +176,45 @@ void World::drawMesh()
 // idea: instead of shared memory, use copy of data from each chunk class???
 void World::UpdateVBO()
 {
+	
+	auto t1 = std::chrono::high_resolution_clock::now();
 	threadstatus = ThreadStatus::Working;
-	unsigned int total_faces = 0;
-	new_vertices.clear();
+	unsigned int numInds = 0;
 	for (auto ch : chunkMap) {
-		Cube currCube;
-		// for every cube
-		for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
-			for (int y = 0; y < yChunk; y++) {
-				for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
+		if (ch.second->doesNeedRebuild()) {
+			ch.second->clearVertices();
+			Cube currCube;
+			// for every cube
+			for (int x = ch.second->startX; x < xChunk + ch.second->startX; x++) {
+				for (int y = 0; y < yChunk; y++) {
+					for (int z = ch.second->startZ; z < zChunk + ch.second->startZ; z++) {
+						currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
+						if (currCube.IsActive()) {
 
-					currCube = ch.second->cubeAt(x - ch.second->startX, y, z - ch.second->startZ);
-					if (currCube.IsActive()) {
+							bool rendered[6] = {};
+							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
 
-						bool rendered[6] = {};
-						calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
-
-						int facesCount = 0;
-						for (int i = 0; i < 6; i++)
-							facesCount += rendered[i];
-						if (facesCount > 0) {    // dont bother if no faces are rendered anyways
-							ch.second->renderFaces(new_vertices, height, width, rendered, x, y, z);
-							total_faces += facesCount;
+							int facesCount = 0;
+							for (int i = 0; i < 6; i++)
+								facesCount += rendered[i];
+							if (facesCount > 0)     // dont bother if no faces are rendered anyways
+								ch.second->renderFaces(height, width, rendered, x, y, z);
+							
 						}
 					}
 				}
 			}
+			ch.second->setRebuildStatus(false);
 		}
-		ch.second->setRebuildStatus(false);
+		numInds += ch.second->numIndices;
 	}
-
-	rebuildIndices(total_faces * 6);
+	
+	rebuildIndices(numInds);
 	threadstatus = ThreadStatus::Done;
+
+	auto t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+	std::cout << "Buffer built in :" << ms_double.count() << "ms\n";
 }
 
 void World::renderChunks(float currX, float currZ)
@@ -251,24 +275,26 @@ void World::renderChunks(float currX, float currZ)
 		for (auto& t : threadstack)
 			t.join();
 		threadstack.clear();
-		threadstack.push_back(std::thread(&World::UpdateVBO, this));  // later push onto a stack
-		/*
-		auto t1 = std::chrono::high_resolution_clock::now();
-		
-		auto t2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		std::cout << ms_double.count() << "ms\n";
-		*/
+		threadstack.push_back(std::thread(&World::UpdateVBO, this));  
 		
 	}
 	else if (needsRebuild && (threadstatus == ThreadStatus::Done)) {
+		auto t1 = std::chrono::high_resolution_clock::now();
 		for (auto& t : threadstack) 
 			t.join();
 		threadstack.clear();
-		total_vertices = new_vertices;
+		clearVectors();
+		for (auto ch : chunkMap) {
+			std::vector<float> chunk_verts = ch.second->getVertices();
+			total_vertices.insert(total_vertices.end(), chunk_verts.begin(), chunk_verts.end());
+		}
 		total_indices = new_indices;
 		threadstatus = ThreadStatus::Idle;
 		needsRebuild = false;
+
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+		std::cout << "Buffer copied in :" << ms_double.count() << "ms\n";
 	}
 	drawMesh();
 

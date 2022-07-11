@@ -16,7 +16,7 @@ TODO:
 	- flowers
 	- transparent blocks (glass, water)
 	- more biomes
-	- more interesting workd gen
+	- more interesting world gen
 
 
 - Optimizations:
@@ -34,3 +34,6 @@ TODO:
 
 - Other:
 	- text rendering                                 ____DONE____
+
+
+One buffer in World method: 350 build + 3 copy = 353 ms

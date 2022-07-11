@@ -7,35 +7,35 @@
 
 static const float reference_vertices[] = {
     // back face 
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+     1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+    0.0f,  1.0f, 0.0f,  1.0f, 1.0f,
     // front face
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    0.0f,  1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+     1.0f, 0.0f,  1.0f,  1.0f, 0.0f,
+    0.0f, 0.0f,  1.0f,  0.0f, 0.0f,
     // left face
-    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    0.0f, 0.0f,  1.0f,  1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    0.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+    0.0f,  1.0f,  1.0f,  1.0f, 1.0f,
     // right face
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     1.0f, 0.0f,  1.0f,  0.0f, 0.0f,
+     1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
      // bottom face
-     -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,
-      0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
-      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.0f, 0.0f,  1.0f,  0.0f, 1.0f,
+      1.0f, 0.0f,  1.0f,  1.0f, 1.0f,
+      1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
      // top face
-     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f
+     0.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+      1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
+     0.0f,  1.0f,  1.0f,  0.0f, 0.0f
 
 };
 
@@ -55,7 +55,7 @@ Chunk::Chunk(int xpos, int zpos, Shader &a_shader)
 	}
     needsRebuild = true;
     m_shader = &a_shader;
-    numFaces = 0;
+    numIndices = 0;
 }
 
 Chunk::~Chunk()
@@ -74,7 +74,7 @@ void Chunk::setRebuildStatus(bool status)
 }
 
 
-Cube Chunk::cubeAt(int x, int y, int z)
+Cube& Chunk::cubeAt(int x, int y, int z)
 {
     return cubes[coordToArray(x, y, z)];
 }
@@ -86,12 +86,21 @@ void Chunk::deleteCube(int x, int y, int z)
 
 void Chunk::addCube(BlockType type, int x, int y, int z)
 {
-    cubes[coordToArray(x, y, z)] = Cube(type, true);
+    cubes[coordToArray(x, y, z)] = Cube(type);
 }
 
 
+std::vector<float> Chunk::getVertices()
+{
+    return vertices;
+}
 
-void Chunk::getBufferArray_1face(std::vector<float> &verts, BlockType type, int face, int height, int width, float x, float y, float z)
+void Chunk::clearVertices()
+{
+    vertices.clear();
+}
+
+void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width, float x, float y, float z)
 // 0: back 1: front 2: left 3: right 4: bottom 5: top
 {
 
@@ -123,23 +132,25 @@ void Chunk::getBufferArray_1face(std::vector<float> &verts, BlockType type, int 
     for (int v = 0; v < 4; v++)
     {
         // vertecies
-        verts.push_back(reference_vertices[face * 20 + v * 5] + x);
-        verts.push_back(reference_vertices[face * 20 + v * 5 + 1] + y);
-        verts.push_back(reference_vertices[face * 20 + v * 5 + 2] + z);
+        vertices.push_back(reference_vertices[face * 20 + v * 5] + x);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 1] + y);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 2] + z);
         // uv tex coords
-        verts.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
-        verts.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
+        vertices.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
 
     }
 
+    numIndices += 6;
+
 }
 
-void Chunk::renderFaces(std::vector<float> &verts, int height, int width, bool rendered[6], int x, int y, int z)
+void Chunk::renderFaces(int height, int width, bool rendered[6], int x, int y, int z)
 {
     Cube currCube = cubeAt(x - startX, y, z - startZ);
     for (int i = 0; i < 6; i++) {  // for every cube face
         if (rendered[i]) {
-            getBufferArray_1face(verts, currCube.getType(), i, height, width, float(x), float(y), float(z));  
+            getBufferArray_1face(currCube.getType(), i, height, width, float(x), float(y), float(z));  
         }
     }
 }
@@ -162,7 +173,6 @@ void Chunk::buildTerrain()
                     cubes[coordToArray((x - startX), y, (z - startZ))].setType(BlockType::BlockType_Dirt);
                 else
                     cubes[coordToArray((x - startX), y, (z - startZ))].setType(BlockType::BlockType_Stone);
-                cubes[coordToArray((x - startX), y, (z - startZ))].setActive(true);
             }
             numCubes += height;
         }

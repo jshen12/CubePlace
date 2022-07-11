@@ -173,6 +173,8 @@
     <ClInclude Include="world.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="line_fragment.glsl" />
+    <None Include="line_vertex.glsl" />
     <None Include="shader_fragment.glsl" />
     <None Include="shader_vertex.glsl" />
     <None Include="text_fragment.glsl" />

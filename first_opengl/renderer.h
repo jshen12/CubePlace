@@ -6,16 +6,23 @@
 #include <string>
 #include <vector>
 
-static float vertices[] = {
+static float text_vertices[] = {
     // positions               // texture coords
      0.45f,  1.0f, 0.0f,  1.0f, 1.0f, // top right
      0.45f, -1.0f, 0.0f,    1.0f, 0.0f, // bottom right
     -0.45f, -1.0f, 0.0f,   0.0f, 0.0f, // bottom left
     -0.45f,  1.0f, 0.0f,   0.0f, 1.0f  // top left 
 };
-static unsigned int indices[] = {
+static unsigned int text_indices[] = {
     0, 1, 3, // first triangle
     1, 2, 3  // second triangle
+};
+
+static float crosshair_vertices[] = {
+    -0.01f, 0.0f, 0.0f,
+    0.01f, 0.0f, 0.0f,
+    0.0f, -0.02f, 0.0f,
+    0.0f, 0.02f, 0.0f
 };
 
 
@@ -57,12 +64,12 @@ static void drawText(GLuint vertex_array, GLuint vertex_buffer, GLuint element_b
         {
 
             // vertecies
-            verts.push_back( (vertices[v * 5]) * scale + x + (scale * i * 0.75f));
-            verts.push_back( (vertices[v * 5 + 1]) * scale + y);
-            verts.push_back(vertices[v * 5 + 2]);
+            verts.push_back( (text_vertices[v * 5]) * scale + x + (scale * i * 0.75f));
+            verts.push_back( (text_vertices[v * 5 + 1]) * scale + y);
+            verts.push_back(text_vertices[v * 5 + 2]);
             // uv tex coords
-            verts.push_back(vertices[v * 5 + 3] / 16.0f + (offsetX / 16.0f));
-            verts.push_back(vertices[v * 5 + 4] / 8.0f + (offsetY / 8.0f));
+            verts.push_back(text_vertices[v * 5 + 3] / 16.0f + (offsetX / 16.0f));
+            verts.push_back(text_vertices[v * 5 + 4] / 8.0f + (offsetY / 8.0f));
 
         }
 
@@ -80,6 +87,17 @@ static void drawText(GLuint vertex_array, GLuint vertex_buffer, GLuint element_b
         sizeof(float) * verts.size(), sizeof(unsigned int) * inds.size(), inds.size());
 }
 
+static void drawLines(GLuint vertex_array, GLuint vertex_buffer)
+{
+    glBindVertexArray(vertex_array); 
+    glLineWidth(4 * 1);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
+    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), crosshair_vertices, GL_STATIC_DRAW);  // write to buffer
 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glDrawArrays(GL_LINES, 0, 12);
+}
 
 #endif 
