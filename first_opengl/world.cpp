@@ -81,7 +81,8 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 	// iteratively step through raycast, checking if block is present
 	// to find face, check which coordinate plane was crossed (1.0 x, 2.0 y, etc.) Use math.floor()
 	glm::vec3 currentPoint = glm::vec3(posVector.x, posVector.y, posVector.z);
-	int x, y, z;
+	double x, y, z, xCh, zCh;
+	int relX, relZ;
 	double distTraveled = 0;
 	double step = STEPPING_DISTANCE;
 	while (distTraveled < MAX_SELECTION_DISTANCE)
@@ -89,17 +90,43 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 		currentPoint.x += sightVector.x * STEPPING_DISTANCE;
 		currentPoint.y += sightVector.y * STEPPING_DISTANCE;
 		currentPoint.z += sightVector.z * STEPPING_DISTANCE;
-		x = static_cast<int>(currentPoint.x);
-		y = static_cast<int>(currentPoint.y);
-		z = static_cast<int>(currentPoint.z);
-		auto ch = chunkMap.find(std::pair<int, int>(std::floor(x / xChunk) * xChunk, std::floor( z / zChunk) * zChunk));
+		x = currentPoint.x < 0 ? std::floor(currentPoint.x) : std::floor(currentPoint.x);
+		y = currentPoint.y;
+		z = currentPoint.z < 0 ? std::floor(currentPoint.z) : std::floor(currentPoint.z);
+		xCh = std::floor(x / xChunk);
+		zCh = std::floor(z / zChunk);
+		auto ch = chunkMap.find(std::pair<int, int>(xCh * xChunk, zCh * zChunk));
 		if (ch == chunkMap.end())
 			return;
-		if (ch->second->cubeAt(x % xChunk, y, z % zChunk).getType() != BlockType::BlockType_Air) {
-			ch->second->cubeAt(x % xChunk, y, z % zChunk).setType(BlockType::BlockType_Air);
+		relX = x < 0 ? xChunk - (static_cast<int>(-x)) % xChunk : static_cast<int>(x) %  xChunk ;
+		relZ = z < 0 ? zChunk - (static_cast<int>(-z) % zChunk) : static_cast<int>(z) % zChunk;
+		if (ch->second->cubeAt(relX, y, relZ).getType() != BlockType::BlockType_Air) {
+			ch->second->cubeAt(relX, y, relZ).setType(BlockType::BlockType_Air);
 			ch->second->setRebuildStatus(true);
-			// TODO: add chunk borders too 
-			printf("%d %d %d", x, y, z);
+			if (relX == xChunk - 1) {
+				std::pair<int, int> adjPair{ xCh * xChunk + xChunk, zCh * zChunk };
+				auto adjChunk = chunkMap.find(adjPair);
+				if (adjChunk != chunkMap.end())  // found !
+					adjChunk->second->setRebuildStatus(true);
+			}
+			if (relX == 0) {
+				std::pair<int, int> adjPair{ xCh * xChunk - xChunk, zCh * zChunk};
+				auto adjChunk = chunkMap.find(adjPair);
+				if (adjChunk != chunkMap.end())
+					adjChunk->second->setRebuildStatus(true);
+			}
+			if (relZ == zChunk - 1) {
+				std::pair<int, int> adjPair{ xCh * xChunk, zCh * zChunk + zChunk };
+				auto adjChunk = chunkMap.find(adjPair);
+				if (adjChunk != chunkMap.end())  
+					adjChunk->second->setRebuildStatus(true);
+			}
+			if (relZ == 0) {
+				std::pair<int, int> adjPair{ xCh * xChunk, zCh * zChunk - zChunk };
+				auto adjChunk = chunkMap.find(adjPair);
+				if (adjChunk != chunkMap.end())  // found !
+					adjChunk->second->setRebuildStatus(true);
+			}
 
 			needsRebuild = true;
 			return;
