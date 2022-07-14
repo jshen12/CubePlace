@@ -21,7 +21,7 @@
 #define MAX_CHUNK_DISTANCE 10 // # of chunks away from player (radius)
 
 #define MAX_SELECTION_DISTANCE 4 // # block player can break/place from
-#define STEPPING_DISTANCE 0.05; // stepping distance of raycast
+#define STEPPING_DISTANCE 0.07; // stepping distance of raycast
 
 
 #endif 

@@ -90,16 +90,20 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 		currentPoint.x += sightVector.x * STEPPING_DISTANCE;
 		currentPoint.y += sightVector.y * STEPPING_DISTANCE;
 		currentPoint.z += sightVector.z * STEPPING_DISTANCE;
-		x = currentPoint.x < 0 ? std::floor(currentPoint.x) : std::floor(currentPoint.x);
+		x = std::floor(currentPoint.x);
 		y = currentPoint.y;
-		z = currentPoint.z < 0 ? std::floor(currentPoint.z) : std::floor(currentPoint.z);
+		z =  std::floor(currentPoint.z);
 		xCh = std::floor(x / xChunk);
 		zCh = std::floor(z / zChunk);
 		auto ch = chunkMap.find(std::pair<int, int>(xCh * xChunk, zCh * zChunk));
 		if (ch == chunkMap.end())
 			return;
-		relX = x < 0 ? xChunk - (static_cast<int>(-x)) % xChunk : static_cast<int>(x) %  xChunk ;
+		relX = x < 0 ? xChunk - (static_cast<int>(-x)) % xChunk : static_cast<int>(x) % xChunk;
 		relZ = z < 0 ? zChunk - (static_cast<int>(-z) % zChunk) : static_cast<int>(z) % zChunk;
+		if (x < 0 && relX == 16)  // dumb
+			relX = 0;
+		if (z < 0 && relZ == 16)
+			relZ = 0;
 		if (ch->second->cubeAt(relX, y, relZ).getType() != BlockType::BlockType_Air) {
 			ch->second->cubeAt(relX, y, relZ).setType(BlockType::BlockType_Air);
 			ch->second->setRebuildStatus(true);
