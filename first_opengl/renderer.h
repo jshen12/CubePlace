@@ -37,11 +37,14 @@ static void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint ele
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STATIC_DRAW);
     // Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // lighting attribute
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
     glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
     //glDisableVertexAttribArray(0);
     //glDisableVertexAttribArray(1);
@@ -70,6 +73,8 @@ static void drawText(GLuint vertex_array, GLuint vertex_buffer, GLuint element_b
             // uv tex coords
             verts.push_back(text_vertices[v * 5 + 3] / 16.0f + (offsetX / 16.0f));
             verts.push_back(text_vertices[v * 5 + 4] / 8.0f + (offsetY / 8.0f));
+            // light ??
+            verts.push_back(1.0f);
 
         }
 

@@ -139,7 +139,16 @@ void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width
         vertices.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
         vertices.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
 
+        
+        if (face == 3 || face == 4)
+            vertices.push_back(0.7f);
+        else if (face == 0 || face == 1)
+            vertices.push_back(0.85f);
+        else
+            vertices.push_back(1.0f);
+
     }
+    
 
     numIndices += 6;
 

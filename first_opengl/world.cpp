@@ -226,8 +226,10 @@ void World::UpdateVBO()
 							calculateFaces(x - ch.second->startX, y, z - ch.second->startZ, *ch.second, rendered);
 
 							int facesCount = 0;
-							for (int i = 0; i < 6; i++)
+							for (int i = 0; i < 6; i++) {
 								facesCount += rendered[i];
+								// TODO: Apply ambient occlusion to every rendered face
+							}
 							if (facesCount > 0)     // dont bother if no faces are rendered anyways
 								ch.second->renderFaces(height, width, rendered, x, y, z);
 							

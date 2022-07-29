@@ -24,12 +24,12 @@ TODO:
 	- octrees ???
 	- greedy meshing ???
 	- fix frame stutters by loading new chunks asynchronously (multithreading??)
-		- https://minecraft.fandom.com/wiki/Chunk    ____DONE_____
+		- https://minecraft.fandom.com/wiki/Chunk    ____DONE____
 	- frutsum culling
 
 
 - Player:
-	- block breaking
+	- block breaking                                 ____DONE____
 	- physics/gravity
 
 - Other:
