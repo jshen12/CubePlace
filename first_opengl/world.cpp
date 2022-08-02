@@ -76,12 +76,18 @@ void World::rebuildIndices(int numInd)
 	}
 }
 
-void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
+void World::setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block) 
 {
+	// place block (or break if blocktype is air)
 	// iteratively step through raycast, checking if block is present
 	// to find face, check which coordinate plane was crossed (1.0 x, 2.0 y, etc.) Use math.floor()
 	glm::vec3 currentPoint = glm::vec3(posVector.x, posVector.y, posVector.z);
 	double x, y, z, xCh, zCh;
+	int prevY = -1;
+	int prevRelX = -1;
+	int prevRelZ = -1;
+	double prevXCh = -1;
+	double prevZCh = -1;
 	int relX, relZ;
 	double distTraveled = 0;
 	double step = STEPPING_DISTANCE;
@@ -91,8 +97,8 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 		currentPoint.y += sightVector.y * STEPPING_DISTANCE;
 		currentPoint.z += sightVector.z * STEPPING_DISTANCE;
 		x = std::floor(currentPoint.x);
-		y = currentPoint.y;
-		z =  std::floor(currentPoint.z);
+		y = std::floor(currentPoint.y);
+		z = std::floor(currentPoint.z);
 		xCh = std::floor(x / xChunk);
 		zCh = std::floor(z / zChunk);
 		auto ch = chunkMap.find(std::pair<int, int>(xCh * xChunk, zCh * zChunk));
@@ -105,12 +111,19 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 		if (z < 0 && relZ == 16)
 			relZ = 0;
 		if (ch->second->cubeAt(relX, y, relZ).getType() != BlockType::BlockType_Air) {
-			ch->second->cubeAt(relX, y, relZ).setType(BlockType::BlockType_Air);
+			if (block == BlockType::BlockType_Air)  // break block
+				ch->second->cubeAt(relX, y, relZ).setType(BlockType::BlockType_Air);
+			else {  // place block
+				if (prevRelX == -1 || prevY == -1 || prevRelZ == -1)  // too close
+					return;
+				auto prevCh = chunkMap.find(std::pair<int, int>(prevXCh * xChunk, prevZCh * zChunk));  
+				prevCh->second->addCube(block, prevRelX, prevY, prevRelZ);
+			}
 			ch->second->setRebuildStatus(true);
 			if (relX == xChunk - 1) {
 				std::pair<int, int> adjPair{ xCh * xChunk + xChunk, zCh * zChunk };
 				auto adjChunk = chunkMap.find(adjPair);
-				if (adjChunk != chunkMap.end())  // found !
+				if (adjChunk != chunkMap.end()) 
 					adjChunk->second->setRebuildStatus(true);
 			}
 			if (relX == 0) {
@@ -135,6 +148,11 @@ void World::breakBlock(glm::vec3 posVector, glm::vec3 sightVector)
 			needsRebuild = true;
 			return;
 		}
+		prevY = y;
+		prevRelX = relX;
+		prevRelZ = relZ;
+		prevXCh = xCh;
+		prevZCh = zCh;
 		distTraveled += STEPPING_DISTANCE;
 	}
 }

@@ -44,7 +44,7 @@ public:
 	void buildWorld();
 	void clearVectors();
 	void rebuildIndices(int numInd);
-	void breakBlock(glm::vec3 posVector, glm::vec3 sightVector);
+	void setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block);
 	void UpdateVBO();
 	void renderChunks(float currX, float currZ);
 	void calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[]);

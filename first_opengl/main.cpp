@@ -32,6 +32,9 @@ glm::vec3 cameraPos = glm::vec3(xChunk/2.0f, 25.0f, zChunk/2.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+glm::vec3 lightPos(0.0f, 0.0f, 30.0f);
+glm::vec3 lightColor(252.0f / 255.0f, 186.0f / 255.0f, 3.0f / 255.0f);
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool currKeysDown[349];
@@ -47,6 +50,7 @@ float pitch = 0.0f;
 bool wireframeOn = false;
 bool textRendered = false;
 bool breakBlock = false;
+bool placeBlock = false;
 bool crosshairOn = true;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -141,6 +145,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void mouseButtonCallBack(GLFWwindow* window, int button, int action, int mods) {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) 
         breakBlock = true;
+    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        placeBlock = true;
     
 }
 
@@ -329,12 +335,19 @@ int main(int argc, char** argv)
         
         // block breaking
         if (breakBlock) {
-            w->breakBlock(cameraPos, cameraFront);
+            w->setBlock(cameraPos, cameraFront, BlockType::BlockType_Air);
             breakBlock = false;
+        }
+        if (placeBlock) {
+            w->setBlock(cameraPos, cameraFront, BlockType::BlockType_Grass);
+            placeBlock = false;
         }
 
         // block render
         blockShader.use();
+
+        blockShader.setVec3("lightPos", lightPos);
+        blockShader.setVec3("lightColor", lightColor);
         // create view matrix for camera
         // (position, target (pos), up vector
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);

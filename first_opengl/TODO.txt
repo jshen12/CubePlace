@@ -26,14 +26,17 @@ TODO:
 	- fix frame stutters by loading new chunks asynchronously (multithreading??)
 		- https://minecraft.fandom.com/wiki/Chunk    ____DONE____
 	- frutsum culling
+	- reduce GPU memory/buffer size by using bit ops to represent data
 
 
 - Player:
 	- block breaking                                 ____DONE____
+	- block placing                                  ____DONE____
 	- physics/gravity
 
 - Other:
 	- text rendering                                 ____DONE____
+	- multiplayer
 
 
 One buffer in World method: 350 build + 3 copy = 353 ms

@@ -139,13 +139,41 @@ void Chunk::getBufferArray_1face(BlockType type, int face, int height, int width
         vertices.push_back(reference_vertices[face * 20 + v * 5 + 3] / BLOCK_RESOLUTION + offsetX);
         vertices.push_back(reference_vertices[face * 20 + v * 5 + 4] / BLOCK_RESOLUTION + offsetY);
 
-        
-        if (face == 3 || face == 4)
-            vertices.push_back(0.7f);
-        else if (face == 0 || face == 1)
-            vertices.push_back(0.85f);
-        else
-            vertices.push_back(1.0f);
+        // normals
+        switch (face) {
+            case 0:
+                vertices.push_back(0.0f); //-z
+                vertices.push_back(0.0f);
+                vertices.push_back(-1.0f);
+                break;
+            case 1:
+                vertices.push_back(0.0f);  // +z
+                vertices.push_back(0.0f);
+                vertices.push_back(1.0f);
+                break;
+            case 2:
+                vertices.push_back(-1.0f);  //-x
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+                break;
+            case 3:
+                vertices.push_back(1.0f);  //+x
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+                break;
+            case 4:
+                vertices.push_back(0.0f);  //-y
+                vertices.push_back(1.0f);
+                vertices.push_back(0.0f);
+                break;
+            case 5:
+                vertices.push_back(0.0f);  //+y
+                vertices.push_back(-1.0f);
+                vertices.push_back(0.0f);
+                break;
+            
+        }
+
 
     }
     
