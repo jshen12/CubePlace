@@ -14,21 +14,24 @@
 #include "renderer.h"
 #include "shader.h"
 #include "world.h"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_glfw.h"
 
 
 /*
 // normalized unique vertecies, z-coords are 0 so 2d
 static float vertices[] = {
-     // positions        // colors          // texture coords
-     1.0f,  1.0f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,   // top right
-     1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,   // bottom right
-    -1.0f, -1.0f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,   // bottom left
-    -1.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left 
+	 // positions        // colors          // texture coords
+	 1.0f,  1.0f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,   // top right
+	 1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,   // bottom right
+	-1.0f, -1.0f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,   // bottom left
+	-1.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f    // top left
 };
 */
 
 
-glm::vec3 cameraPos = glm::vec3(xChunk/2.0f, 25.0f, zChunk/2.0f);
+glm::vec3 cameraPos = glm::vec3(xChunk / 2.0f, 25.0f, zChunk / 2.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -49,320 +52,346 @@ float pitch = 0.0f;
 
 bool wireframeOn = false;
 bool textRendered = false;
+bool showDebug = false;
 bool breakBlock = false;
 bool placeBlock = false;
 bool crosshairOn = true;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
 }
 
 
-void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key < 0)
-        return;
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-    else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-        if (!wireframeOn) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // wireframe mode
-            wireframeOn = true;
-        }
-        else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            wireframeOn = false;
-        }
-    }
-    else if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS) {
-        textRendered = !textRendered;
-    }
-    else if (action == GLFW_PRESS)
-        currKeysDown[key] = true;
-    else if (action == GLFW_RELEASE)
-        currKeysDown[key] = false;
-    else
-        return;
+void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key < 0)
+		return;
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+	else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+		wireframeOn = !wireframeOn;
+		glPolygonMode(GL_FRONT_AND_BACK, wireframeOn ? GL_FILL : GL_LINE);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+		showDebug = !showDebug;
+		glfwSetInputMode(window, GLFW_CURSOR, showDebug ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS) {
+		textRendered = !textRendered;
+	}
+	else if (action == GLFW_PRESS)
+		currKeysDown[key] = true;
+	else if (action == GLFW_RELEASE)
+		currKeysDown[key] = false;
+	else
+		return;
 }
 
-void processKeyboardInput(GLFWwindow* window)
-{
-
-    float cameraSpeed = speed * deltaTime;
-    if (currKeysDown[GLFW_KEY_W]) {
-        glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
-        cameraPos += glm::normalize(newCam) * cameraSpeed;
-    }
-    if (currKeysDown[GLFW_KEY_S]) {
-        glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
-        cameraPos -= glm::normalize(newCam) * cameraSpeed;
-    }
-    if (currKeysDown[GLFW_KEY_A])
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (currKeysDown[GLFW_KEY_D])
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (currKeysDown[GLFW_KEY_SPACE])
-        cameraPos += glm::vec3(0, 1, 0) * cameraSpeed;
-    if (currKeysDown[GLFW_KEY_LEFT_SHIFT])
-        cameraPos-= glm::vec3(0, 1, 0) * cameraSpeed;
+void processKeyboardInput(GLFWwindow* window) {
+	float cameraSpeed = speed * deltaTime;
+	if (currKeysDown[GLFW_KEY_W]) {
+		glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
+		cameraPos += glm::normalize(newCam) * cameraSpeed;
+	}
+	if (currKeysDown[GLFW_KEY_S]) {
+		glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
+		cameraPos -= glm::normalize(newCam) * cameraSpeed;
+	}
+	if (currKeysDown[GLFW_KEY_A])
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (currKeysDown[GLFW_KEY_D])
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (currKeysDown[GLFW_KEY_SPACE])
+		cameraPos += glm::vec3(0, 1, 0) * cameraSpeed;
+	if (currKeysDown[GLFW_KEY_LEFT_SHIFT])
+		cameraPos -= glm::vec3(0, 1, 0) * cameraSpeed;
 }
 
-void mouseCallback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (firstMouse) // initially set to true
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstMouse) // initially set to true
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;  // reversed
-    lastX = xpos;
-    lastY = ypos;
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;  // reversed
+	lastX = xpos;
+	lastY = ypos;
 
-    const float sensitivity = 0.05f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
+	const float sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
 
-    yaw += xoffset;
-    pitch += yoffset;
+	yaw += xoffset;
+	pitch += yoffset;
 
 
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
 
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(direction);
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(direction);
 }
 
 void mouseButtonCallBack(GLFWwindow* window, int button, int action, int mods) {
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) 
-        breakBlock = true;
-    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        placeBlock = true;
-    
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+		breakBlock = true;
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+		placeBlock = true;
 }
 
-unsigned char* setUpTexture(const char* path, int &width, int &height, int &nrChannels)
-{
-    
-    // load texture
-    stbi_set_flip_vertically_on_load(true);
-    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
-    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-    if (!data)
-        printf("Failed to load texture");
-    return data;
+unsigned char* setUpTexture(const char* path, int& width, int& height, int& nrChannels) {
+
+	// load texture
+	stbi_set_flip_vertically_on_load(true);
+	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // fix alignment issues
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+	if (!data)
+		printf("Failed to load texture");
+	return data;
+}
+
+// imgui windows
+void displayFPS(bool* show, float fps) {
+	static const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize;
+	std::string fpsString = "FPS: " + std::to_string(fps);
+	ImGui::Begin("FPS", show, flags);
+	ImGui::Text(fpsString.c_str());
+	ImGui::End();
 }
 
 
-
-int main(int argc, char** argv)
-{
-
-
-    for (int i = 0; i < 348; i++) {
-        currKeysDown[i] = false;
-    }
-
-    // instantiante glfw
-    if (!glfwInit()) {
-        printf("Error when instantiating glfw");
-        return -1;
-    }
-
-    // set opengl version to 3 w/ core profile
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);  // for mac users lol
-
-    // create window object (width, height, title, fullscreen/window, share context?)
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "First OpenGL", NULL, NULL);
-    if (window == NULL)
-    {
-        printf("Failed to creage GLFW window");
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        printf("Failed to initialize GLAD");
-        return -1;
-    }
-
-    // specify dimentions (bottom left x, y, width, height)
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    // call callback func (framebuffer_size...) when window is resized
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetKeyCallback(window, updateKeyboardInput);
-    glfwSetCursorPosCallback(window, mouseCallback);
-    glfwSetMouseButtonCallback(window, mouseButtonCallBack);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    Shader blockShader("shader_vertex.glsl", "shader_fragment.glsl");
-    Shader textShader("text_vertex.glsl", "text_fragment.glsl");
-    Shader lineShader("line_vertex.glsl", "line_fragment.glsl");
-
-    // create bindable vertex array and buffers
-
-    GLuint vertex_arrays[3], vertex_buffers[3], element_buffers[3];   // 0 is block, 1 is text, 2 is line
-    glGenVertexArrays(3, vertex_arrays);
-    glGenBuffers(3, vertex_buffers);               // generate 1 buffer w/ id vertex_buffer
-    glGenBuffers(3, element_buffers);
-    //setUpBufferData(vertex_array, vertex_buffer, element_buffer);
+glm::vec3 getSunDirection(double time) {
+	return glm::normalize(glm::vec3(std::fmod(0.1 * time, 2) - 1, -1.0f, 1.0f));
+}
 
 
-    // generate textures
-    
-    GLuint textures[2];   // 0 is block atlas, 1 is text atlas
-    int width, height, nrChannels;
-    
-    glGenTextures(2, textures);
+int main(int argc, char** argv) {
+	for (int i = 0; i < 348; i++) {
+		currKeysDown[i] = false;
+	}
 
-    glActiveTexture(GL_TEXTURE1);
-    unsigned char* data = setUpTexture("font_atlas.png", width, height, nrChannels);
-    glBindTexture(GL_TEXTURE_2D, textures[1]);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	// instantiante glfw
+	if (!glfwInit()) {
+		printf("Error when instantiating glfw");
+		return -1;
+	}
 
-    // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    //glGenerateMipmap(GL_TEXTURE_2D);
-    textShader.use();
-    textShader.setInt("ourTexture1", 1);
+	// set opengl version to 3 w/ core profile
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);  // for mac users lol
 
-    stbi_image_free(data);
+	// create window object (width, height, title, fullscreen/window, share context?)
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "First OpenGL", NULL, NULL);
+	if (window == NULL) {
+		printf("Failed to creage GLFW window");
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+		printf("Failed to initialize GLAD");
+		return -1;
+	}
+
+	// specify dimentions (bottom left x, y, width, height)
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	// call callback func (framebuffer_size...) when window is resized
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetKeyCallback(window, updateKeyboardInput);
+	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetMouseButtonCallback(window, mouseButtonCallBack);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	Shader blockShader("shader_vertex.glsl", "shader_fragment.glsl");
+	Shader textShader("text_vertex.glsl", "text_fragment.glsl");
+	Shader lineShader("line_vertex.glsl", "line_fragment.glsl");
+
+	// create bindable vertex array and buffers
+
+	GLuint vertex_arrays[3], vertex_buffers[3], element_buffers[3];   // 0 is block, 1 is text, 2 is line
+	glGenVertexArrays(3, vertex_arrays);
+	glGenBuffers(3, vertex_buffers);               // generate 1 buffer w/ id vertex_buffer
+	glGenBuffers(3, element_buffers);
+	//setUpBufferData(vertex_array, vertex_buffer, element_buffer);
 
 
-    glActiveTexture(GL_TEXTURE0);
+	// generate textures
 
-    data = setUpTexture("minecraft-textureatlas-16x16.png", width, height, nrChannels);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	GLuint textures[2];   // 0 is block atlas, 1 is text atlas
+	int width, height, nrChannels;
 
-    // generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    blockShader.use();
-    blockShader.setInt("ourTexture1", 0);
-    blockShader.setFloat("fog_distance", xChunk * MAX_CHUNK_DISTANCE);
-    stbi_image_free(data);
-    
+	glGenTextures(2, textures);
 
-    glEnable(GL_DEPTH_TEST);
-    // set projection matrix
-    glm::mat4 projection = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(FOV), float(SCREEN_WIDTH)/float(SCREEN_HEIGHT), 0.1f, MAX_DRAW_DISTANCE); // projection matrix (fov, aspect ratio, near, far)
+	glActiveTexture(GL_TEXTURE1);
+	unsigned char* data = setUpTexture("font_atlas.png", width, height, nrChannels);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    
-    double prevTime = glfwGetTime();
-    int nbFrames = 0;
+	// generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	textShader.use();
+	textShader.setInt("ourTexture1", 1);
 
-    // face culling, only render front
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-    glFrontFace(GL_CCW);
+	stbi_image_free(data);
 
-    //glEnable(GL_RASTERIZER_DISCARD);
 
-    double currentFrame;
-    float del;
-    float lastFPS = 0.0f;
-    std::stringstream text;
+	glActiveTexture(GL_TEXTURE0);
 
-    World* w = new World(blockShader, height, width, vertex_arrays[0], vertex_buffers[0], element_buffers[0]);
-    w->initWorld();
-    w->buildWorld();
-    // render loop
-    while (!glfwWindowShouldClose(window))
-    {
-        // calculate timedelta
-        currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-        nbFrames++;
-        
-        // calculate FPS
-        if ((currentFrame - prevTime) >= 1.0)
-        {
-            del = currentFrame - prevTime;
-            printf("%f ms/frame FPS: %f\n", (del * 1000.0) / double(nbFrames), double(nbFrames) / (del));
-            lastFPS = double(nbFrames) / (del);
-            nbFrames = 0;
-            prevTime = currentFrame;
-        }
-        // input
-        processKeyboardInput(window);
-        // clear buffer
-        glClearColor(120.0f / 256.0f, 167.0f / 256.0f, 255.0f / 256.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	data = setUpTexture("minecraft-textureatlas-16x16.png", width, height, nrChannels);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        // draw elements
-        // transformations
-        glm::mat4 view = glm::mat4(1.0f);   // view matrix (position camera i.e. shift objects)
-        
-        
-        // text render
-        if (textRendered) {
-            text << "FPS: " << std::fixed << std::setprecision(2) << lastFPS;
-            //text << " Camera Vec: (" << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << ")";
-            text << "  Curr Cords: (" << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")";
-            textShader.use();
-            drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], text.str(), -0.95f, 0.95f);
-            text.str(std::string());   // clear stringstream
-        }
-        // crosshair render
-        if (crosshairOn) {
-            lineShader.use();
-            drawLines(vertex_arrays[2], vertex_buffers[2]);
-         }
-        
-        // block breaking
-        if (breakBlock) {
-            w->setBlock(cameraPos, cameraFront, BlockType::BlockType_Air);
-            breakBlock = false;
-        }
-        if (placeBlock) {
-            w->setBlock(cameraPos, cameraFront, BlockType::BlockType_Grass);
-            placeBlock = false;
-        }
+	// generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	blockShader.use();
+	blockShader.setInt("ourTexture1", 0);
+	blockShader.setFloat("fog_distance", xChunk * MAX_CHUNK_DISTANCE);
+	stbi_image_free(data);
 
-        // block render
-        blockShader.use();
 
-        blockShader.setVec3("lightPos", lightPos);
-        blockShader.setVec3("lightColor", lightColor);
-        // create view matrix for camera
-        // (position, target (pos), up vector
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        blockShader.setMat4("matrix", projection * view);
-        blockShader.setVec3("camera", cameraPos);
-        glBindVertexArray(vertex_arrays[0]);  // do this before drawing different elements
-        w->renderChunks(cameraPos.x, cameraPos.z);
+	glEnable(GL_DEPTH_TEST);
+	// set projection matrix
+	glm::mat4 projection = glm::mat4(1.0f);
+	projection = glm::perspective(glm::radians(FOV), float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, MAX_DRAW_DISTANCE); // projection matrix (fov, aspect ratio, near, far)
 
-        // swap buffers and poll
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-    
-    glfwTerminate();
-    
-    return 0;
+
+	double prevTime = glfwGetTime();
+	int nbFrames = 0;
+
+	// face culling, only render front
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CCW);
+
+	//glEnable(GL_RASTERIZER_DISCARD);
+
+	// Imgui setup
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+
+	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
+
+	double currentFrame;
+	float del;
+	float lastFPS = 0.0f;
+	std::stringstream text;
+
+	World* w = new World(blockShader, height, width, vertex_arrays[0], vertex_buffers[0], element_buffers[0]);
+	w->initWorld();
+	w->buildWorld();
+	// render loop
+	while (!glfwWindowShouldClose(window)) {
+		// calculate timedelta
+		currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		nbFrames++;
+
+		// calculate FPS
+		if ((currentFrame - prevTime) >= 1.0) {
+			del = currentFrame - prevTime;
+			printf("%f ms/frame FPS: %f\n", (del * 1000.0) / double(nbFrames), double(nbFrames) / (del));
+			lastFPS = double(nbFrames) / (del);
+			nbFrames = 0;
+			prevTime = currentFrame;
+		}
+		// input
+		processKeyboardInput(window);
+
+		// imgui stuff
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		if (showDebug) {
+			ImGui::ShowDemoWindow();
+			displayFPS(&showDebug, lastFPS);
+		}
+
+
+		// clear buffer
+		glClearColor(120.0f / 256.0f, 167.0f / 256.0f, 255.0f / 256.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// draw elements
+		// transformations
+		glm::mat4 view = glm::mat4(1.0f);   // view matrix (position camera i.e. shift objects)
+
+
+		// text render
+		if (textRendered) {
+			text << "FPS: " << std::fixed << std::setprecision(2) << lastFPS;
+			//text << " Camera Vec: (" << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << ")";
+			text << "  Curr Cords: (" << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")";
+			textShader.use();
+			drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], text.str(), -0.95f, 0.95f);
+			text.str(std::string());   // clear stringstream
+		}
+		// crosshair render
+		if (crosshairOn) {
+			lineShader.use();
+			drawLines(vertex_arrays[2], vertex_buffers[2]);
+		}
+
+		// block breaking
+		if (breakBlock) {
+			w->setBlock(cameraPos, cameraFront, BlockType::BlockType_Air);
+			breakBlock = false;
+		}
+		if (placeBlock) {
+			w->setBlock(cameraPos, cameraFront, BlockType::BlockType_Grass);
+			placeBlock = false;
+		}
+
+		// block render
+		blockShader.use();
+
+		blockShader.setVec3("lightPos", lightPos);
+		blockShader.setVec3("lightColor", lightColor);
+		// create view matrix for camera
+		// (position, target (pos), up vector
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		blockShader.setMat4("matrix", projection * view);
+		blockShader.setVec3("camera", cameraPos);
+		blockShader.setVec3("sunDir", getSunDirection(currentFrame));
+		glBindVertexArray(vertex_arrays[0]);  // do this before drawing different elements
+		w->renderChunks(cameraPos.x, cameraPos.z);
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		// swap buffers and poll
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	// cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+	glfwTerminate();
+
+	return 0;
 
 }

@@ -10,6 +10,7 @@ in float fogFactor;
 uniform sampler2D ourTexture1;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
+uniform vec3 sunDir;
 
 void main()
 {
@@ -18,8 +19,8 @@ void main()
     vec3 ambient = ambientStrength * lightColor;
 
     // diffuse
-    vec3 lightDir = normalize(lightPos - FragPos);  // change for directional light
-    //vec3 lightDir = normalize(vec3(1.0, -1.0, 1.0));
+    //vec3 lightDir = normalize(lightPos - FragPos);  // change for directional light
+    vec3 lightDir = sunDir;
     float diff = max(dot(Normal, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
 

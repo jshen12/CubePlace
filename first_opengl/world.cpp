@@ -15,7 +15,7 @@ World::World(Shader& shader, int h, int w, GLuint vert_arr, GLuint vert_buff, GL
 	vertex_buffer = vert_buff;
 	element_buffer = ele_buff;
 	threadstatus = ThreadStatus::Idle;
-	needsRebuild = false;
+	needsRebuild = true;
 	indCount = 0;
 }
 
@@ -215,6 +215,9 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 
 void World::drawMesh()
 {
+	if (total_indices.size() == 0) {
+		return;
+	}
 	drawBufferData(vertex_array, vertex_buffer, element_buffer, &total_vertices[0], &total_indices[0],
 		sizeof(float) * total_vertices.size(), sizeof(unsigned int) * total_indices.size(), total_indices.size());
 }
@@ -269,30 +272,34 @@ void World::UpdateVBO()
 }
 
 void World::renderChunks(float currX, float currZ)
-{
+{	
 	// delete far away chunks (and set rebuild status)
-	for (auto ch : chunkMap) {
-		if (abs(ch.second->startX - currX) > MAX_CHUNK_DISTANCE * xChunk || abs(ch.second->startZ - currZ) > MAX_CHUNK_DISTANCE * zChunk) {
-			delete ch.second;
-			chunkMap.erase(std::make_pair(ch.second->startX, ch.second->startZ));
-			needsRebuild = true;
+	for (auto ch = chunkMap.begin(); ch != chunkMap.end();) {
+		if (abs(ch->second->startX - currX) > MAX_CHUNK_DISTANCE * xChunk || abs(ch->second->startZ - currZ) > MAX_CHUNK_DISTANCE * zChunk) {
 			// set rebuild status for adjecent chunks, if present
-			auto adjChunk = chunkMap.find(std::make_pair(ch.second->startX - xChunk, ch.second->startZ));   // south
+			auto adjChunk = chunkMap.find(std::make_pair(ch->second->startX - xChunk, ch->second->startZ));   // south
 			if (adjChunk != chunkMap.end())
 				adjChunk->second->setRebuildStatus(true);
-			adjChunk = chunkMap.find(std::make_pair(ch.second->startX + xChunk, ch.second->startZ));   // north
+			adjChunk = chunkMap.find(std::make_pair(ch->second->startX + xChunk, ch->second->startZ));   // north
 			if (adjChunk != chunkMap.end())
 				adjChunk->second->setRebuildStatus(true);
-			adjChunk = chunkMap.find(std::make_pair(ch.second->startX, ch.second->startZ - zChunk));   // east
+			adjChunk = chunkMap.find(std::make_pair(ch->second->startX, ch->second->startZ - zChunk));   // east
 			if (adjChunk != chunkMap.end())
 				adjChunk->second->setRebuildStatus(true);
-			adjChunk = chunkMap.find(std::make_pair(ch.second->startX, ch.second->startZ + zChunk));   // west
+			adjChunk = chunkMap.find(std::make_pair(ch->second->startX, ch->second->startZ + zChunk));   // west
 			if (adjChunk != chunkMap.end())
 				adjChunk->second->setRebuildStatus(true);
+
+			delete ch->second;
+			ch = chunkMap.erase(ch);
+			needsRebuild = true;
+		}
+		else {
+			ch++;
 		}
 	}
 	
-	
+
 	// add new chunks (and set rebuild status)
 	int nearestX;
 	int nearestZ;
