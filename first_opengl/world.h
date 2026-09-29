@@ -38,7 +38,7 @@ struct pair_hash {
 class World
 {
 public:
-	World(Shader &shader, int h, int w, GLuint vert_arr, GLuint vert_buff, GLuint ele_buff);
+	World(Shader& shader, int h, int w, GLuint vert_arr, GLuint vert_buff, GLuint ele_buff);
 	~World();
 	void initWorld();
 	void buildWorld();
@@ -48,7 +48,7 @@ public:
 	void UpdateVBO();
 	void renderChunks(float currX, float currZ);
 	void calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[]);
-	void drawMesh();
+	void drawMesh(bool needsRebuild);
 
 
 private:
@@ -58,7 +58,7 @@ private:
 	int width;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-	GLuint element_buffer;  
+	GLuint element_buffer;
 	std::vector<float> total_vertices;
 	std::vector<unsigned int> total_indices;
 	std::vector<unsigned int> new_indices;

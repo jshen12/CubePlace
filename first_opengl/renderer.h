@@ -28,80 +28,36 @@ static float crosshair_vertices[] = {
 
 static void drawBufferData(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer,
 	static float* vert, static unsigned int* ind,
-	int vert_size, int ind_size, int count)
-{
+	int vert_size, int ind_size, int count, bool needsRebinding) {
 	glBindVertexArray(vertex_array);               // bind array first
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
-	glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STATIC_DRAW);  // write to buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STATIC_DRAW);
-	// Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
-	glEnableVertexAttribArray(0);
-	// texture attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-	// normal attribute
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (5 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
-	//glDisableVertexAttribArray(0);
-	//glDisableVertexAttribArray(1);
-}
 
-static void drawText(GLuint vertex_array, GLuint vertex_buffer, GLuint element_buffer, std::string text, float x, float y)
-{
-	// TODO: MAKE ONE TRIANGLE MESH, INSTEAD OF MULTIPLE ONES
-	glBindVertexArray(vertex_array);
-	std::vector<float> verts = {};
-	std::vector<unsigned int> inds = {};
-	int offsetX;
-	int offsetY;
-	int indCount = 0;
-	float scale = 0.05f;
-	for (int i = 0; i < text.length(); i++) {
-		offsetX = (text[i] - 32) % 16;
-		offsetY = 7 - (text[i] - 32) / 16;
-		for (int v = 0; v < 4; v++)
-		{
-
-			// vertecies
-			verts.push_back((text_vertices[v * 5]) * scale + x + (scale * i * 0.75f));
-			verts.push_back((text_vertices[v * 5 + 1]) * scale + y);
-			verts.push_back(text_vertices[v * 5 + 2]);
-			// uv tex coords
-			verts.push_back(text_vertices[v * 5 + 3] / 16.0f + (offsetX / 16.0f));
-			verts.push_back(text_vertices[v * 5 + 4] / 8.0f + (offsetY / 8.0f));
-			// light ??
-			verts.push_back(1.0f);
-			verts.push_back(1.0f);
-			verts.push_back(1.0f);
-
-		}
-
-		inds.push_back(indCount);
-		inds.push_back(indCount + 1);
-		inds.push_back(indCount + 3);
-		inds.push_back(indCount + 1);
-		inds.push_back(indCount + 2);
-		inds.push_back(indCount + 3);
-		indCount += 4;
-
+	// only bind to buffer if verticies (i.e. world) changes
+	if (needsRebinding) {
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
+		glBufferData(GL_ARRAY_BUFFER, vert_size, vert, GL_STATIC_DRAW);  // write to buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);    // for vertex array buffers
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size, ind, GL_STATIC_DRAW);
+		// Tell OpenGL how to interpret vertex buffer  (index, size(x,y,z), dtype, normalized?, stride, offset) 
+		// position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		// texture attribute
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+		// normal attribute
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+		glEnableVertexAttribArray(2);
 	}
-
-	drawBufferData(vertex_array, vertex_buffer, element_buffer, &verts[0], &inds[0],
-		sizeof(float) * verts.size(), sizeof(unsigned int) * inds.size(), inds.size());
+	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
 }
 
-static void drawLines(GLuint vertex_array, GLuint vertex_buffer)
-{
+static void drawLines(GLuint vertex_array, GLuint vertex_buffer) {
 	glBindVertexArray(vertex_array);
 	glLineWidth(4 * 1);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);  // bind to gl_array_buffer
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), crosshair_vertices, GL_STATIC_DRAW);  // write to buffer
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
 	glDrawArrays(GL_LINES, 0, 12);

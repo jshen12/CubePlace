@@ -40,7 +40,7 @@ glm::vec3 lightColor(252.0f / 255.0f, 186.0f / 255.0f, 3.0f / 255.0f);
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-bool currKeysDown[349];
+bool currKeysDown[349] = { false };
 
 bool firstMouse = true;
 float lastX = SCREEN_WIDTH / 2;
@@ -48,10 +48,7 @@ float lastY = SCREEN_HEIGHT / 2;
 float yaw = -90.0f;
 float pitch = 0.0f;
 
-
-
 bool wireframeOn = false;
-bool textRendered = false;
 bool showDebug = false;
 bool breakBlock = false;
 bool placeBlock = false;
@@ -65,18 +62,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key < 0)
 		return;
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (glfwGetKey(window, QUIT_BUTTON) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+	else if (glfwGetKey(window, WIREFRAME_BUTTON) == GLFW_PRESS) {
 		wireframeOn = !wireframeOn;
 		glPolygonMode(GL_FRONT_AND_BACK, wireframeOn ? GL_FILL : GL_LINE);
 	}
-	else if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+	else if (glfwGetKey(window, DEBUG_BUTTON) == GLFW_PRESS) {
 		showDebug = !showDebug;
 		glfwSetInputMode(window, GLFW_CURSOR, showDebug ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS) {
-		textRendered = !textRendered;
 	}
 	else if (action == GLFW_PRESS)
 		currKeysDown[key] = true;
@@ -88,21 +82,21 @@ void updateKeyboardInput(GLFWwindow* window, int key, int scancode, int action, 
 
 void processKeyboardInput(GLFWwindow* window) {
 	float cameraSpeed = speed * deltaTime;
-	if (currKeysDown[GLFW_KEY_W]) {
+	if (currKeysDown[FORWARD_BUTTON]) {
 		glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
 		cameraPos += glm::normalize(newCam) * cameraSpeed;
 	}
-	if (currKeysDown[GLFW_KEY_S]) {
+	if (currKeysDown[BACKWARD_BUTTON]) {
 		glm::vec3 newCam = glm::vec3(cameraFront.x, 0, cameraFront.z);
 		cameraPos -= glm::normalize(newCam) * cameraSpeed;
 	}
-	if (currKeysDown[GLFW_KEY_A])
+	if (currKeysDown[LEFT_BUTTON])
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (currKeysDown[GLFW_KEY_D])
+	if (currKeysDown[RIGHT_BUTTON])
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (currKeysDown[GLFW_KEY_SPACE])
+	if (currKeysDown[UP_BUTTON])
 		cameraPos += glm::vec3(0, 1, 0) * cameraSpeed;
-	if (currKeysDown[GLFW_KEY_LEFT_SHIFT])
+	if (currKeysDown[DOWN_BUTTON])
 		cameraPos -= glm::vec3(0, 1, 0) * cameraSpeed;
 }
 
@@ -140,9 +134,9 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void mouseButtonCallBack(GLFWwindow* window, int button, int action, int mods) {
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	if (glfwGetMouseButton(window, BREAK_BLOCK_BUTTON) == GLFW_PRESS)
 		breakBlock = true;
-	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	else if (glfwGetMouseButton(window, PLACE_BLOCK_BUTTON) == GLFW_PRESS)
 		placeBlock = true;
 }
 
@@ -173,10 +167,6 @@ glm::vec3 getSunDirection(double time) {
 
 
 int main(int argc, char** argv) {
-	for (int i = 0; i < 348; i++) {
-		currKeysDown[i] = false;
-	}
-
 	// instantiante glfw
 	if (!glfwInit()) {
 		printf("Error when instantiating glfw");
@@ -190,14 +180,14 @@ int main(int argc, char** argv) {
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);  // for mac users lol
 
 	// create window object (width, height, title, fullscreen/window, share context?)
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "First OpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "First OpenGL", IS_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL, NULL);
 	if (window == NULL) {
 		printf("Failed to creage GLFW window");
 		glfwTerminate();
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		printf("Failed to initialize GLAD");
 		return -1;
 	}
@@ -216,16 +206,13 @@ int main(int argc, char** argv) {
 	Shader lineShader("line_vertex.glsl", "line_fragment.glsl");
 
 	// create bindable vertex array and buffers
-
 	GLuint vertex_arrays[3], vertex_buffers[3], element_buffers[3];   // 0 is block, 1 is text, 2 is line
 	glGenVertexArrays(3, vertex_arrays);
 	glGenBuffers(3, vertex_buffers);               // generate 1 buffer w/ id vertex_buffer
 	glGenBuffers(3, element_buffers);
-	//setUpBufferData(vertex_array, vertex_buffer, element_buffer);
 
 
 	// generate textures
-
 	GLuint textures[2];   // 0 is block atlas, 1 is text atlas
 	int width, height, nrChannels;
 
@@ -262,6 +249,7 @@ int main(int argc, char** argv) {
 	// generate texture(target, mipmap_level, format, width, height, 0, format, datatype, data)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
+
 	blockShader.use();
 	blockShader.setInt("ourTexture1", 0);
 	blockShader.setFloat("fog_distance", xChunk * MAX_CHUNK_DISTANCE);
@@ -290,13 +278,13 @@ int main(int argc, char** argv) {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 
+
 	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
 	double currentFrame;
 	float del;
 	float lastFPS = 0.0f;
-	std::stringstream text;
 
 	World* w = new World(blockShader, height, width, vertex_arrays[0], vertex_buffers[0], element_buffers[0]);
 	w->initWorld();
@@ -339,16 +327,6 @@ int main(int argc, char** argv) {
 		// transformations
 		glm::mat4 view = glm::mat4(1.0f);   // view matrix (position camera i.e. shift objects)
 
-
-		// text render
-		if (textRendered) {
-			text << "FPS: " << std::fixed << std::setprecision(2) << lastFPS;
-			//text << " Camera Vec: (" << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << ")";
-			text << "  Curr Cords: (" << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << ")";
-			textShader.use();
-			drawText(vertex_arrays[1], vertex_buffers[1], element_buffers[1], text.str(), -0.95f, 0.95f);
-			text.str(std::string());   // clear stringstream
-		}
 		// crosshair render
 		if (crosshairOn) {
 			lineShader.use();

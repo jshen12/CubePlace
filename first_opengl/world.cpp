@@ -31,8 +31,8 @@ void World::initWorld()
 {
 	for (int x = -(MAX_CHUNK_DISTANCE); x < MAX_CHUNK_DISTANCE + 1; x++) {
 		for (int z = -(MAX_CHUNK_DISTANCE); z < MAX_CHUNK_DISTANCE + 1; z++) {
-			Chunk *ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
-			chunkMap [std::make_pair(x * xChunk, z * zChunk)] = ch;
+			Chunk* ch = new Chunk(x * xChunk, z * zChunk, *m_shader);
+			chunkMap[std::make_pair(x * xChunk, z * zChunk)] = ch;
 		}
 	}
 	total_vertices = {};
@@ -76,7 +76,7 @@ void World::rebuildIndices(int numInd)
 	}
 }
 
-void World::setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block) 
+void World::setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block)
 {
 	// place block (or break if blocktype is air)
 	// iteratively step through raycast, checking if block is present
@@ -116,18 +116,18 @@ void World::setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block
 			else {  // place block
 				if (prevRelX == -1 || prevY == -1 || prevRelZ == -1)  // too close
 					return;
-				auto prevCh = chunkMap.find(std::pair<int, int>(prevXCh * xChunk, prevZCh * zChunk));  
+				auto prevCh = chunkMap.find(std::pair<int, int>(prevXCh * xChunk, prevZCh * zChunk));
 				prevCh->second->addCube(block, prevRelX, prevY, prevRelZ);
 			}
 			ch->second->setRebuildStatus(true);
 			if (relX == xChunk - 1) {
 				std::pair<int, int> adjPair{ xCh * xChunk + xChunk, zCh * zChunk };
 				auto adjChunk = chunkMap.find(adjPair);
-				if (adjChunk != chunkMap.end()) 
+				if (adjChunk != chunkMap.end())
 					adjChunk->second->setRebuildStatus(true);
 			}
 			if (relX == 0) {
-				std::pair<int, int> adjPair{ xCh * xChunk - xChunk, zCh * zChunk};
+				std::pair<int, int> adjPair{ xCh * xChunk - xChunk, zCh * zChunk };
 				auto adjChunk = chunkMap.find(adjPair);
 				if (adjChunk != chunkMap.end())
 					adjChunk->second->setRebuildStatus(true);
@@ -135,7 +135,7 @@ void World::setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block
 			if (relZ == zChunk - 1) {
 				std::pair<int, int> adjPair{ xCh * xChunk, zCh * zChunk + zChunk };
 				auto adjChunk = chunkMap.find(adjPair);
-				if (adjChunk != chunkMap.end())  
+				if (adjChunk != chunkMap.end())
 					adjChunk->second->setRebuildStatus(true);
 			}
 			if (relZ == 0) {
@@ -158,9 +158,9 @@ void World::setBlock(glm::vec3 posVector, glm::vec3 sightVector, BlockType block
 }
 
 
-void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[])
+void World::calculateFaces(int x, int y, int z, Chunk& currChunk, bool rendered[])
 {
-	
+
 	// top
 	rendered[5] = !(y < (yChunk - 1) && currChunk.cubeAt(x, y + 1, z).IsActive());
 	// bottom
@@ -205,7 +205,7 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 		auto adjChunk = chunkMap.find(adjPair);
 		if (adjChunk != chunkMap.end())  // found !
 			rendered[0] = !adjChunk->second->cubeAt(x, y, zChunk - 1).IsActive();
-			
+
 		else
 			rendered[0] = true; // edge, keep rendered
 	}
@@ -213,13 +213,13 @@ void World::calculateFaces(int x, int y, int z, Chunk &currChunk, bool rendered[
 		rendered[0] = !currChunk.cubeAt(x, y, z - 1).IsActive();
 }
 
-void World::drawMesh()
+void World::drawMesh(bool needsRebuild)
 {
 	if (total_indices.size() == 0) {
 		return;
 	}
 	drawBufferData(vertex_array, vertex_buffer, element_buffer, &total_vertices[0], &total_indices[0],
-		sizeof(float) * total_vertices.size(), sizeof(unsigned int) * total_indices.size(), total_indices.size());
+		sizeof(float) * total_vertices.size(), sizeof(unsigned int) * total_indices.size(), total_indices.size(), needsRebuild);
 }
 
 // takes copy of world (or list of changes?), returns (or sets) VBO: maintain queue of threads
@@ -228,7 +228,7 @@ void World::drawMesh()
 // idea: instead of shared memory, use copy of data from each chunk class???
 void World::UpdateVBO()
 {
-	
+
 	auto t1 = std::chrono::high_resolution_clock::now();
 	threadstatus = ThreadStatus::Working;
 	unsigned int numInds = 0;
@@ -253,7 +253,7 @@ void World::UpdateVBO()
 							}
 							if (facesCount > 0)     // dont bother if no faces are rendered anyways
 								ch.second->renderFaces(height, width, rendered, x, y, z);
-							
+
 						}
 					}
 				}
@@ -262,7 +262,7 @@ void World::UpdateVBO()
 		}
 		numInds += ch.second->numIndices;
 	}
-	
+
 	rebuildIndices(numInds);
 	threadstatus = ThreadStatus::Done;
 
@@ -272,7 +272,9 @@ void World::UpdateVBO()
 }
 
 void World::renderChunks(float currX, float currZ)
-{	
+{
+	bool verticesUpdated = false;
+
 	// delete far away chunks (and set rebuild status)
 	for (auto ch = chunkMap.begin(); ch != chunkMap.end();) {
 		if (abs(ch->second->startX - currX) > MAX_CHUNK_DISTANCE * xChunk || abs(ch->second->startZ - currZ) > MAX_CHUNK_DISTANCE * zChunk) {
@@ -298,13 +300,13 @@ void World::renderChunks(float currX, float currZ)
 			ch++;
 		}
 	}
-	
+
 
 	// add new chunks (and set rebuild status)
 	int nearestX;
 	int nearestZ;
-	for (int x = -(MAX_CHUNK_DISTANCE - 1) * xChunk; x < (MAX_CHUNK_DISTANCE) * xChunk; x += xChunk) {
-		for (int z = -(MAX_CHUNK_DISTANCE - 1) * zChunk; z < (MAX_CHUNK_DISTANCE) * zChunk ; z += zChunk) {
+	for (int x = -(MAX_CHUNK_DISTANCE - 1) * xChunk; x < (MAX_CHUNK_DISTANCE)*xChunk; x += xChunk) {
+		for (int z = -(MAX_CHUNK_DISTANCE - 1) * zChunk; z < (MAX_CHUNK_DISTANCE)*zChunk; z += zChunk) {
 			nearestX = std::floor(currX / xChunk) * xChunk + x;
 			nearestZ = std::floor(currZ / zChunk) * zChunk + z;
 			if (chunkMap.find(std::make_pair(nearestX, nearestZ)) == chunkMap.end()) {
@@ -312,9 +314,9 @@ void World::renderChunks(float currX, float currZ)
 				Chunk* ch = new Chunk(nearestX, nearestZ, *m_shader);
 				ch->buildTerrain();
 				chunkMap[std::make_pair(nearestX, nearestZ)] = ch;
-				
+
 				auto adjChunk = chunkMap.find(std::make_pair(nearestX - xChunk, nearestZ));   // east
-				if (adjChunk != chunkMap.end()) 
+				if (adjChunk != chunkMap.end())
 					adjChunk->second->setRebuildStatus(true);
 				adjChunk = chunkMap.find(std::make_pair(nearestX + xChunk, nearestZ));   // west
 				if (adjChunk != chunkMap.end())
@@ -333,12 +335,12 @@ void World::renderChunks(float currX, float currZ)
 		for (auto& t : threadstack)
 			t.join();
 		threadstack.clear();
-		threadstack.push_back(std::thread(&World::UpdateVBO, this));  
-		
+		threadstack.push_back(std::thread(&World::UpdateVBO, this));
+
 	}
 	else if (needsRebuild && (threadstatus == ThreadStatus::Done)) {
 		auto t1 = std::chrono::high_resolution_clock::now();
-		for (auto& t : threadstack) 
+		for (auto& t : threadstack)
 			t.join();
 		threadstack.clear();
 		clearVectors();
@@ -349,11 +351,12 @@ void World::renderChunks(float currX, float currZ)
 		total_indices = new_indices;
 		threadstatus = ThreadStatus::Idle;
 		needsRebuild = false;
+		verticesUpdated = true;
 
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 		std::cout << "Buffer copied in :" << ms_double.count() << "ms\n";
 	}
-	drawMesh();
 
+	drawMesh(verticesUpdated);
 }

@@ -2,7 +2,8 @@
 #define CUBE_H_
 
 
-enum class BlockType {
+enum class BlockType
+{
 	BlockType_Air = 0,
 	BlockType_Grass,
 	BlockType_Dirt,
@@ -13,10 +14,10 @@ enum class BlockType {
 	BlockType_NumTypes,
 };
 
-class Cube 
+class Cube
 {
 public:
-	
+
 	Cube();
 	Cube(BlockType type);
 	~Cube();
